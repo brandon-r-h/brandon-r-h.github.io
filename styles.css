@@ -273,7 +273,7 @@ nav ul li a:hover::after{
     background: #ff004f;
 }
 /* -----css for small screen----- */
-nav .fas{
+nav .fa-solid{
     display: none;
 }
 @media only screen and (max-width: 600px){
@@ -306,7 +306,7 @@ nav .fas{
         display: block;
         margin: 25px;
     }
-    nav ul .fas{
+    nav ul .fa-solid{
         position: absolute;
         top: 25px;
         left: 25px;
