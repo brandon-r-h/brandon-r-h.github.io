@@ -1,0 +1,183 @@
+### **Title:** Wines of the PNW
+
+### **Author:** Brandon Rodriguez-Hernandez
+
+### **Date:** 01/27/2025
+
+format: html: embed-resources: true
+
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](src/wine_of_pnw_py.qmd) hosted on GitHub pages.
+
+# Setup
+
+3.  In the space provided after the Python chunk, explain what thecode is doing (line by line) then delete this line.
+4.  Get your [GitHub Pages](https://docs.github.com/en/pages/quickstart) ready.
+
+**Set Up Python:**
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+**Set Up R Compatability:**
+
+```{python}
+import pyreadr
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+```
+
+**Step Up Dataframe:**
+
+```{python}
+wine = pyreadr.read_r('wine.rds')[None]      
+wine = wine[wine['province'].isin(['Oregon', 'California', 'New York'])]
+wine['cherry'] = wine['description'].apply(lambda x: 'cherry' in x)
+wine['lprice'] = wine['price'].apply(np.log)
+wine = wine[['lprice', 'points', 'cherry', 'province']]
+
+
+```
+
+**Explanataion:**
+
+> [TODO]{style="color:red;font-weight:bold"}: *The first line imports the dataset and the "None" part keeps it as a pandas dfm then it filters the dataset for wines from Oregon, Cali, and NY. The following line makes a new column called 'cherry' and it is True or False depending on wether or not the description column for a row had 'cherry' in it, then a log function is applied to the price, and finally the 4 columns listed are extracted from the dataset.*
+
+# Multiple Regression
+
+## Linear Models
+
+First run a linear regression model with log of price as the dependent variable and 'points' and 'cherry' as features (variables).
+
+```{r}
+# TODO: hint: m1 <- lm(lprice ~ points + cherry)
+#install.packages("moderndive")
+#install.packages("caret")
+
+library(tidyverse)
+library(moderndive)
+library(caret)
+library(dslabs)
+# Just for the slides
+
+library(dplyr)
+
+wine = readRDS("wine.rds")
+
+wine = wine %>%
+  filter(province %in% c("Oregon", "California", "New York")) %>%
+  mutate(cherry = grepl("cherry", description, ignore.case = TRUE)) %>%
+  mutate(lprice = log(price)) %>%
+  select(lprice, points, cherry, province)
+
+m1 <- lm(lprice ~ points + cherry, data = wine)
+
+predictions <- predict(m1)
+
+residuals <- wine$lprice - predictions
+
+mse <- mean(residuals^2)
+
+rmse <- sqrt(mse)
+
+print(rmse)
+
+
+
+```
+
+**Explanataion:**
+
+> [TODO]{style="color:red;font-weight:bold"}: *I re-did the wine import and filering like before, then I created the first model which I then calculated the RMSE for.*
+
+> [TODO]{style="color:red;font-weight:bold"}: *The RMSE was .4687, which is decent, but for the range of the lprice, it is not great either. Just to clarify, the RMSE is how far the predicted values are from the actual values.*
+
+## Interaction Models
+
+Add an interaction between 'points' and 'cherry'.
+
+```{r}
+m2 <- lm(lprice ~ points * cherry, data = wine)
+
+get_regression_summaries(m2)
+
+```
+
+> [TODO]{style="color:red;font-weight:bold"}: *Making the model and then printing the regression summaries*
+
+> [TODO]{style="color:red;font-weight:bold"}: *The RMSE barely improved, indicating that cherry did not have a significant impact on the outcome of the original model.*
+
+### The Interaction Variable
+
+> [TODO]{style="color:red;font-weight:bold"}: *The interaction in this model checks wether or not the relationship between one coefficient and the outcome changes depending on the value of the other coefficient. The first model represented the relationship between the lprice and points, and this second model was a check for wether or not the cherry coefficient has any significant impact on the outcome of the original relationship.* <br>[Explain as you would to a non-technical manager.](https://youtube.com/clip/UgkxY7ohjoimIef6zpPLjgQHqJcJHeZptuVm?feature=shared)
+
+## Applications
+
+Determine which province (Oregon, California, or New York), does the 'cherry' feature in the data affect price most?
+
+```{r}
+# TODO: 
+
+
+oregon <- wine%>%
+  filter(province=="Oregon")
+
+oregon_m = lm(lprice ~ points * cherry, data=oregon)
+
+get_regression_summaries(oregon_m)
+
+cali <- wine%>%
+  filter(province=="California")
+
+cali_m = lm(lprice ~ points * cherry, data=cali)
+
+get_regression_summaries(cali_m)
+
+
+ny <- wine%>%
+  filter(province=="New York")
+
+ny_m = lm(lprice ~ points * cherry, data=ny)
+
+get_regression_summaries(ny_m)
+
+
+print(0.1129121/0.4685223)
+```
+
+> [TODO]{style="color:red;font-weight:bold"}: *I redid the interaction model, but I made it on three different datasets that I made from the wine data. I filtered by province and split it up like that then made the model and checked the regression summary. The 'cherry' feature affected the New York model the most. It decreased the difference between the predicted values and actual values by \~24%.*
+
+# Scenarios
+
+## On Accuracy
+
+Imagine a model to distinguish New York wines from those in California and Oregon. After a few days of work, you take some measurements and note: "I've achieved 91% accuracy on my model!"
+
+Should you be impressed? Why or why not?
+
+```{r}
+# TODO: Use simple descriptive statistics from the data to justify your answer.
+table(wine$province)
+
+print(2364/(19073+5147))
+
+```
+
+> [TODO]{style="color:red;font-weight:bold"}: *The model could be labeling all the wines to be from Oregon or California and have that accuracy because the number of wines from New York is the same percentage as the error rate.*
+
+## On Ethics
+
+Why is understanding this vignette important to use machine learning in an ethical manner?
+
+> [TODO]{style="color:red;font-weight:bold"}: *The vignette highlights the issue of imbalance in datasets and even 'high' accruacy can be misrepresentative to subsets of the data.*
+
+## Ignorance is no excuse
+
+Imagine you are working on a model to predict the likelihood that an individual loses their job as the result of the changing federal policy under new presidential administrations. You have a very large dataset with many hundreds of features, but you are worried that including indicators like age, income or gender might pose some ethical problems. When you discuss these concerns with your boss, she tells you to simply drop those features from the model. Does this solve the ethical issue? Why or why not?
+
+> [TODO]{style="color:red;font-weight:bold"}: *I beleive it ignores the issue instead of trying to find a way to come to a reasonable solution that does mininmal harm.*
