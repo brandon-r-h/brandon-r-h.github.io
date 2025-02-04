@@ -37,6 +37,15 @@ jobs:
           destination: ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        
+      - name: Download and inspect the artifact (DEBUGGING)
+        uses: actions/download-artifact@v3
+        with:
+          name: github-pages  # The default artifact name for pages
+          path: ./_artifact_check  # Download to a temporary directory
+
+      - name: List artifact contents (DEBUGGING)
+        run: ls -l _artifact_check
 
   # Deployment job
   deploy:
