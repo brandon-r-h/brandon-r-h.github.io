@@ -1,6 +1,8 @@
-### Author: Brandon Rodriguez-Hernandez     
-### Published: January 27, 2025 
+### **Title:** Wines of the PNW
 
+### **Author:** Brandon Rodriguez-Hernandez
+
+### **Date:** 01/27/2025
 
 **Abstract:**
 
@@ -12,6 +14,7 @@ This is a technical blog post of **both** an HTML file *and* [.qmd file](src/win
 4.  Get your [GitHub Pages](https://docs.github.com/en/pages/quickstart) ready.
 
 **Set Up Python:**
+
 ```{python}
 import numpy as np
 import pandas as pd
@@ -20,6 +23,7 @@ import seaborn as sns
 ```
 
 **Set Up R Compatability:**
+
 ```{python}
 import pyreadr
 import statsmodels.api as sm
@@ -27,6 +31,7 @@ import statsmodels.formula.api as smf
 ```
 
 **Step Up Dataframe:**
+
 ```{python}
 wine = pyreadr.read_r('wine.rds')[None]      
 wine = wine[wine['province'].isin(['Oregon', 'California', 'New York'])]
@@ -39,7 +44,7 @@ wine = wine[['lprice', 'points', 'cherry', 'province']]
 
 **Explanataion:**
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The first line imports the dataset and the "None" part keeps it as a pandas dfm then it filters the dataset for wines from Oregon, Cali, and NY. The following line makes a new column called 'cherry' and it is True or False depending on wether or not the description column for a row had 'cherry' in it, then a log function is applied to the price, and finally the 4 columns listed are extracted from the dataset.*
+> [TODO]{style="color:red;font-weight:bold"}: *The first line imports the dataset and the "None" part keeps it as a pandas dfm then it filters the dataset for wines from Oregon, Cali, and NY. The following line makes a new column called 'cherry' and it is True or False depending on wether or not the description column for a row had 'cherry' in it, then a log function is applied to the price, and finally the 4 columns listed are extracted from the dataset.*
 
 # Multiple Regression
 
@@ -86,13 +91,13 @@ print(rmse)
 
 **Explanataion:**
 
-> <span style="color:red;font-weight:bold">TODO</span>: *I re-did the wine import and filering like before, then I created the first model which I then calculated the RMSE for.*
+> [TODO]{style="color:red;font-weight:bold"}: *I re-did the wine import and filering like before, then I created the first model which I then calculated the RMSE for.*
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The RMSE was .4687, which is decent, but for the range of the lprice, it is not great either. Just to clarify, the RMSE is how far the predicted values are from the actual values.*
+> [TODO]{style="color:red;font-weight:bold"}: *The RMSE was .4687, which is decent, but for the range of the lprice, it is not great either. Just to clarify, the RMSE is how far the predicted values are from the actual values.*
 
 ## Interaction Models
 
-Add an interaction between 'points' and 'cherry'. 
+Add an interaction between 'points' and 'cherry'.
 
 ```{r}
 m2 <- lm(lprice ~ points * cherry, data = wine)
@@ -101,13 +106,13 @@ get_regression_summaries(m2)
 
 ```
 
-> <span style="color:red;font-weight:bold">TODO</span>: *Making the model and then printing the regression summaries  *
+> [TODO]{style="color:red;font-weight:bold"}: *Making the model and then printing the regression summaries*
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The RMSE barely improved, indicating that cherry did not have a significant impact on the outcome of the original model.*
+> [TODO]{style="color:red;font-weight:bold"}: *The RMSE barely improved, indicating that cherry did not have a significant impact on the outcome of the original model.*
 
 ### The Interaction Variable
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The interaction in this model checks wether or not the relationship between one coefficient and the outcome changes depending on the value of the other coefficient. The first model represented the relationship between the lprice and points, and this second model was a check for wether or not the cherry coefficient has any significant impact on the outcome of the original relationship.* <br>[Explain as you would to a non-technical manager.](https://youtube.com/clip/UgkxY7ohjoimIef6zpPLjgQHqJcJHeZptuVm?feature=shared)
+> [TODO]{style="color:red;font-weight:bold"}: *The interaction in this model checks wether or not the relationship between one coefficient and the outcome changes depending on the value of the other coefficient. The first model represented the relationship between the lprice and points, and this second model was a check for wether or not the cherry coefficient has any significant impact on the outcome of the original relationship.* <br>[Explain as you would to a non-technical manager.](https://youtube.com/clip/UgkxY7ohjoimIef6zpPLjgQHqJcJHeZptuVm?feature=shared)
 
 ## Applications
 
@@ -143,13 +148,13 @@ get_regression_summaries(ny_m)
 print(0.1129121/0.4685223)
 ```
 
-> <span style="color:red;font-weight:bold">TODO</span>: *I redid the interaction model, but I made it on three different datasets that I made from the wine data. I filtered by province and split it up like that then made the model and checked the regression summary. The 'cherry' feature affected the New York model the most. It decreased the difference between the  predicted values and actual values by ~24%.*
+> [TODO]{style="color:red;font-weight:bold"}: *I redid the interaction model, but I made it on three different datasets that I made from the wine data. I filtered by province and split it up like that then made the model and checked the regression summary. The 'cherry' feature affected the New York model the most. It decreased the difference between the predicted values and actual values by \~24%.*
 
 # Scenarios
 
 ## On Accuracy
 
-Imagine a model to distinguish New York wines from those in California and Oregon. After a few days of work, you take some measurements and note: "I've achieved 91% accuracy on my model!" 
+Imagine a model to distinguish New York wines from those in California and Oregon. After a few days of work, you take some measurements and note: "I've achieved 91% accuracy on my model!"
 
 Should you be impressed? Why or why not?
 
@@ -161,15 +166,16 @@ print(2364/(19073+5147))
 
 ```
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The model could be labeling all the wines to be from Oregon or California and have that accuracy because the number of wines from New York is the same percentage as the error rate.*
+> [TODO]{style="color:red;font-weight:bold"}: *The model could be labeling all the wines to be from Oregon or California and have that accuracy because the number of wines from New York is the same percentage as the error rate.*
 
 ## On Ethics
 
 Why is understanding this vignette important to use machine learning in an ethical manner?
 
-> <span style="color:red;font-weight:bold">TODO</span>: *The vignette highlights the issue of imbalance in datasets and even 'high' accruacy can be misrepresentative to subsets of the data.*
+> [TODO]{style="color:red;font-weight:bold"}: *The vignette highlights the issue of imbalance in datasets and even 'high' accruacy can be misrepresentative to subsets of the data.*
 
 ## Ignorance is no excuse
+
 Imagine you are working on a model to predict the likelihood that an individual loses their job as the result of the changing federal policy under new presidential administrations. You have a very large dataset with many hundreds of features, but you are worried that including indicators like age, income or gender might pose some ethical problems. When you discuss these concerns with your boss, she tells you to simply drop those features from the model. Does this solve the ethical issue? Why or why not?
 
-> <span style="color:red;font-weight:bold">TODO</span>: *I beleive it ignores the issue instead of trying to find a way to come to a reasonable solution that does mininmal harm.*
+> [TODO]{style="color:red;font-weight:bold"}: *I beleive it ignores the issue instead of trying to find a way to come to a reasonable solution that does mininmal harm.*
