@@ -1,0 +1,121 @@
+### Author: Brandon Rodriguez-Hernandez
+
+### Published: January 27, 2025
+
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](wine_features.qmd) hosted on GitHub pages.
+
+**Step Up Code:**
+
+```{r}
+library(tidyverse)
+library(caret)
+library(fastDummies)
+wine <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/master/dat/wine.rds")))
+```
+
+**Explanataion:**
+
+> [TODO]{style="color:red;font-weight:bold"}: *The first three lines pull in the libraries needed, and the line after that downloads wine.rds into the qmd file.*
+
+# Feature Engineering
+
+We begin by engineering an number of features.
+
+1.  Create a total of 10 features (including points).
+2.  Remove all rows with a missing value.
+3.  Ensure only log(price) and engineering features are the only columns that remain in the `wino` dataframe.
+
+```{r}
+wino <- wine %>% 
+  mutate(lprice=log(price),
+         
+      
+          points_category = case_when(
+            points >= 90 ~ "Excellent",
+            points >= 85 ~ "Good",
+            TRUE ~ "Fair"
+          ),
+      
+          variety_complexity = str_count(variety, "\\s+") + 1,
+      
+          #has_designation = ifelse(!is.na(designation), "Yes", "No"),
+         
+          description_length = str_count(description, "\\s+") + 1,
+          
+          points_deviation = points - ave(points, variety, FUN = mean),
+
+          
+
+
+
+          )%>%
+  tidyr::drop_na() %>%  # Use tidyr::drop_na() for clarity. dplyr also has drop_na but tidyr:: is best practice.
+  # Select only the engineered features (and lprice, if that's your target variable)
+  select(lprice, points_category, variety_complexity, 
+          description_length, points_deviation)
+
+
+
+```
+
+# Caret
+
+We now use a train/test split to evaluate the features.
+
+1.  Use the Caret library to partition the wino dataframe into an 80/20 split.
+2.  Run a linear regression with bootstrap resampling.
+3.  Report RMSE on the test partition of the data.
+
+```{r}
+# TODO: hint: Check the slides.
+wine_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino[wine_index, ]
+wino_te <- wino[-wine_index, ]
+
+ctrl <- trainControl(method = "boot", 
+                    number = 100,     
+                    savePredictions = TRUE, 
+                    verboseIter = FALSE)
+
+# Train the linear model with bootstrapping
+m1_boot <- train(lprice ~ .,
+                data = wino_tr,
+                method = "lm",
+                trControl = ctrl)
+
+
+predictions_boot <- predict(m1_boot, newdata = wino_te)
+
+
+rmse_test <- RMSE(predictions_boot, wino_te$lprice)
+
+rmse_test
+
+
+```
+
+# Variable selection
+
+We now graph the importance of your 10 features.
+
+```{r}
+# TODO: hint: Check the slides.
+
+importance <- varImp(m1_boot)
+
+
+importance_df <- importance$importance
+importance_df$Feature <- rownames(importance_df) # Add feature names as a column
+
+ggplot(importance_df, aes(x = reorder(Feature, Overall), y = Overall)) +
+  geom_col(fill = "skyblue", color = "black") +
+  coord_flip() +  # Horizontal bars
+  labs(title = "Variable Importance", x = "Feature", y = "Importance") +
+  theme_bw() # Clean theme
+
+
+
+
+```
