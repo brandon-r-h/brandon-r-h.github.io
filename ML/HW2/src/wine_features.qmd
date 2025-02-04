@@ -1,6 +1,10 @@
-### Author: Brandon Rodriguez-Hernandez
+### **Title:** Wines of the PNW
 
-### Published: January 27, 2025
+### **Author:** Brandon Rodriguez-Hernandez
+
+### **Date:** 02/3/2025
+
+format: html: embed-resources: true
 
 **Abstract:**
 
