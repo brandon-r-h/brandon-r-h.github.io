@@ -1,0 +1,134 @@
+---
+title: $K$NN
+author: "Brandon Rodriguez-Hernandez"
+date: "02/10/2025"
+
+format: 
+  html:  # You will quite likely want to change all but the last one, to taste
+    theme: superhero  
+    mainfont: monospace
+    highlight-style: github
+    title-block-banner: true
+    embed-resources: true
+---
+
+**Abstract:**
+
+This is a technical blog post of **both** an HTML file *and* [.qmd file](https://raw.githubusercontent.com/brandon-r-h/brandon-r-h.github.io/tree/main/ML/HW3/src/knn3.qmd) hosted on GitHub pages.
+
+# 0. Quarto Type-setting
+
+-   This document is rendered with Quarto, and configured to embed an images using the `embed-resources` option in the header.
+-   If you wish to use a similar header, here's is the format specification for this document:
+
+``` email
+format: 
+  html:
+    embed-resources: true
+```
+
+# 1. Setup
+
+```{r}
+library(tidyverse)
+library(caret)
+library(EnvStats)
+library(fastDummies)
+wine <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/master/dat/pinot.rds")))
+```
+
+## 2. $K$NN Concepts
+
+> [TODO]{style="color:red;font-weight:bold"}: *Explain how the choice of K affects the quality of your prediction when using a* $K$ Nearest Neighbors algorithm.
+
+The choice of K affects the qualirt of prediction when using K Nearest Neighbors alrgorithm because it is what assumes the number of groups within your dataset, and would thus affect how accurate the predictions are.
+
+## 3. Feature Engineering
+
+1.  Create a version of the year column that is a *factor* (instead of numeric).
+2.  Create dummy variables that indicate the presence of "cherry", "chocolate" and "earth" in the description.
+
+-   Take care to handle upper and lower case characters.
+
+3.  Create 3 new features that represent the interaction between *time* and the cherry, chocolate and earth inidicators.
+4.  Remove the description column from the data.
+
+```{r}
+wine$year_as_factor = as.factor(wine$year)
+
+wino = wine %>%
+  mutate(note_cherry = str_detect(description,"cherry")) %>% 
+  mutate(note_chocolate = str_detect(description,"chocolate")) %>%
+  mutate(note_earth = str_detect(description,"earth"))%>%
+  dummy_cols(
+  select_columns = c("note_cherry","note_chocolate","note_earth"),
+  remove_most_frequent_dummy = T, 
+  remove_selected_columns = T)%>%
+  mutate(interaction_cherry_year = interaction(note_cherry_TRUE,year))%>%
+  mutate(interaction_chocolate_year = interaction(note_cherry_TRUE,year))%>%
+  mutate(interaction_earth_year = interaction(note_earth_TRUE,year))%>%
+  select(-description)
+
+
+```
+
+## 4. Preprocessing
+
+1.  Preprocess the dataframe from the previous code block using BoxCox, centering and scaling of the numeric features
+2.  Create dummy variables for the `year` factor column
+
+```{r}
+wino_normal = wino %>% 
+  select(-id)%>%
+  preProcess(method = c("BoxCox","center","scale")) %>%
+  predict(wino)%>%
+  dummy_cols(
+  select_columns = c("year_as_factor"),
+  remove_most_frequent_dummy = T, 
+  remove_selected_columns = T)
+
+
+
+```
+
+## 5. Running $K$NN
+
+1.  Split the dataframe into an 80/20 training and test set
+2.  Use Caret to run a $K$NN model that uses our engineered features to predict province
+
+-   use 5-fold cross validated subsampling
+-   allow Caret to try 15 different values for $K$
+
+3.  Display the confusion matrix on the test data
+
+```{r}
+wine_index <- createDataPartition(wino_normal$province, p = 0.8, list = FALSE)
+train <- wino_normal[ wine_index, ]
+test <- wino_normal[-wine_index, ]     
+                            
+fit <- train(province ~ .,
+             data = train, 
+             method = "knn",
+             tuneLength = 15,
+             trControl = trainControl(method = "cv", number = 5))
+
+
+confusionMatrix(predict(fit, test),factor(test$province))
+
+```
+
+## 6. Kappa
+
+How do we determine whether a Kappa value represents a good, bad or some other outcome?
+
+> [TODO]{style="color:red;font-weight:bold"}: *Explain*
+
+The Kappa value is from a range from 0-1, and the closer the value to 1 the better the outcome.
+
+## 7. Improvement
+
+How can we interpret the confusion matrix, and how can we improve in our predictions?
+
+> [TODO]{style="color:red;font-weight:bold"}: *Explain*
+
+From this matrix, you can calculate precision, recall, and F1-score for each class.We can improve our predictions by gaining more background knowledge of the dataset in order to create better engineered features. We could also tune our model to the features with statistcially significant p-values.
