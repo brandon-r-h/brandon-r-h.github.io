@@ -1,0 +1,137 @@
+---
+title: "Final Presentation"
+author: "Team $i$, or your names (up to you)"
+date: "04/21/2025"
+format: revealjs
+---
+
+# Goal
+
+*This is a generalized ML assignment*
+
+1.  Predict the profit of future products developed at CravenSpeed
+2.  Using any model (or ensemble) you'd like
+3.  Evaluated using RMSE on holdout sample (you won't see)
+
+# Submission
+
+-   A maximum of 15 slides, without any code, that demonstrates:
+    -   How and why you created/selected the features used,
+    -   The choice and design of your model, and
+    -   Results and insights.
+-   You must present from the Ford 102 "Teaching Machine" with no login from a public url.
+
+# Presentations
+
+-   It is a simple matter to create a presentation within Quarto.
+-   Simply specify "revealjs" format. [Read more](https://quarto.org/docs/reference/formats/presentations/revealjs.html)
+
+::: columns
+::: {.column width="50%"}
+The page
+
+``` {.r filename="final_page.qmd"}
+---
+title: "Final Page"
+author: "Team $i$"
+date: "04/21/2025"
+
+---
+
+# Goal
+
+...
+```
+:::
+
+::: {.column width="50%"}
+The presentation
+
+``` {.r filename="final_present.qmd"}
+---
+title: "Final Presentation"
+author: "Team $i$"
+date: "04/21/2025"
+format: revealjs
+---
+
+# Goal
+
+...
+```
+:::
+:::
+
+# Criteria
+
+-   Every group member must participate in the presentation
+-   Maximum 10 features including interactions
+
+# Setup
+
+-   You may use any libraries, but `tidyverse` and `caret` may be sufficient.
+    -   If you wish, you may use Python, Julia, or Observable in any manner you see fit and I will figure out how to assess it.
+    -   Recall - no code on slides! So it won't matter.
+
+``` r
+library(tidyverse)
+library(caret)
+```
+
+# Dataframe
+
+-   We use the `craven_train` dataframe.
+
+``` r
+fast <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/refs/heads/master/dat/craven_train.rds")))
+```
+
+-   You will necessarily perform some feature engineering as you see fit.
+    -   Exactly ten (10) features.
+-   No relation to "[Crazy Train](https://www.youtube.com/watch?v=tMDFv5m18Pw)"
+
+# An "engineer" function
+
+-   Besides the presentation
+    -   Submit a .qmd or .rmd file that includes an "engineer" function
+    -   It engineers your features over a data frame with the same columns as "craven_train.rds".
+
+``` r
+fast <- readRDS("secret.rds") # I have "secret" data
+fast <- fast %>% engineer() # I will apply your function.
+```
+
+# A bad example
+
+``` r
+# Engineer 10 features
+engineer <- function(df) {
+    df |> select(1:10)
+}
+```
+
+# Setup
+
+-   Assessments will be setup as follows:
+    -   "Profit" is engineered.
+    -   Note that the first five (10) features are selected.
+    -   This ensures no more than 10 features are used.
+    -   "Profit" is incorporated into the data frame.
+
+``` r
+profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
+fast <- fast %>% engineer()
+fast <- fast |> select(1:10) # Max 10 features
+fast["Profit"] = profit
+```
+
+# Assessment
+
+-   Assessments will be evaluated via RMSE over the secret data as follows:
+
+``` r
+train(Profit ~ .,
+      data = fast, 
+      method = "lm",
+      trControl = trainControl(method = "cv", number = 5))$results$RMSE
+```
