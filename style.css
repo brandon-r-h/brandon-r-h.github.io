@@ -1,0 +1,277 @@
+/* --- General Styles --- */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #111827;
+    color: #F9FAFB;
+    overflow-x: hidden;
+    transition: background-color 0.5s, color 0.5s;
+}
+.font-fira { font-family: 'Fira Code', monospace; }
+
+/* --- 3D Background Canvas --- */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 1s ease-in;
+}
+#bg-canvas.visible {
+    opacity: 1;
+}
+
+/* --- Navigation --- */
+.nav-link::after {
+    content: ''; display: block; width: 0; height: 2px;
+    background: #38bdf8; transition: width .3s, background-color .5s;
+}
+.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+/* --- Animated Button --- */
+.animated-button {
+    position: relative; overflow: hidden;
+    transition: all 0.3s ease-in-out; z-index: 1;
+}
+.animated-button::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; background-color: #38bdf8;
+    border-radius: 50%; transform: translate(-50%, -50%);
+    transition: width 0.4s ease-in-out, height 0.4s ease-in-out, background-color .5s;
+    z-index: -1;
+}
+.animated-button:hover::before { width: 225%; height: 500%; }
+.animated-button:hover { color: #111827 !important; }
+
+/* --- Page Content Styling --- */
+.page-content {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- 3D Project Card Hover Effect --- */
+.project-card-container {
+    perspective: 1000px;
+}
+.project-card {
+    transition: transform 0.2s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+.project-card > * { 
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Interactive Resume Timeline --- */
+.timeline-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 4rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: #38bdf8 #1f2937;
+}
+.timeline {
+    display: flex;
+    width: max-content;
+    padding: 0 5vw;
+    position: relative;
+}
+.timeline::before {
+    content: ''; position: absolute;
+    top: 50%; left: 0; width: 100%;
+    height: 4px; background-color: #374151;
+    transform: translateY(-50%);
+    transition: background-color .5s;
+}
+.timeline-item {
+    position: relative;
+    width: 300px;
+    margin: 0 40px;
+}
+.timeline-content {
+    background-color: #1f2937;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #374151;
+    position: relative;
+    transition: background-color .5s, border-color .5s;
+}
+.timeline-item:nth-child(odd) .timeline-content {
+    bottom: 40px;
+}
+.timeline-item:nth-child(even) .timeline-content {
+    top: 40px;
+}
+.timeline-content::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    transform: translateX(-50%) rotate(45deg);
+    transition: background-color .5s, border-color .5s;
+}
+.timeline-item:nth-child(odd) .timeline-content::before {
+    bottom: -7px;
+}
+.timeline-item:nth-child(even) .timeline-content::before {
+    top: -7px;
+}
+
+/* --- Skill Graph --- */
+#skill-graph-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    margin-top: 2rem;
+}
+#skill-graph-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* --- Terminal Easter Egg --- */
+#terminal-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 90vw;
+    max-width: 700px;
+    height: 80vh;
+    max-height: 500px;
+    background-color: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #4f5b93;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color .5s, border-color .5s;
+}
+#terminal-container.visible {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: all;
+}
+.terminal-header {
+    padding: 8px; background-color: #4f5b93;
+    border-top-left-radius: 7px; border-top-right-radius: 7px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: move;
+    transition: background-color .5s;
+}
+.terminal-body {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 14px;
+}
+.terminal-input-line { display: flex; }
+.terminal-prompt { color: #38bdf8; margin-right: 8px; transition: color .5s; }
+.terminal-input {
+    background: transparent; border: none; outline: none;
+    color: #f1f1f1; flex-grow: 1;
+}
+.terminal-output .response { white-space: pre-wrap; }
+.terminal-output .text-green-400 { color: #4ade80; }
+.terminal-output .text-yellow-400 { color: #facc15; }
+.terminal-output .text-red-500 { color: #ef4444; }
+.terminal-output .text-sky-400 { color: #38bdf8; }
+
+/* --- Contact Page --- */
+.contact-card {
+    background-color: #1f2937;
+    border: 1px solid #374151;
+    transition: all 0.3s ease-out;
+    transform-style: preserve-3d;
+}
+.contact-card-content {
+    transition: transform 0.3s ease-out;
+    transform: translateZ(0);
+}
+.contact-card-icon {
+     transition: transform 0.3s ease-out;
+     transform: translateZ(0);
+}
+
+/* --- Retro Theme --- */
+body.theme-retro {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #0a0a0a;
+    color: #39ff14;
+    image-rendering: pixelated;
+}
+.theme-retro h1, .theme-retro h2, .theme-retro h3, .theme-retro h4 {
+    text-shadow: 2px 2px #14532d;
+}
+.theme-retro .text-sky-400 { color: #39ff14; }
+.theme-retro .text-gray-300 { color: #a3e635; }
+.theme-retro .text-gray-400 { color: #84cc16; }
+.theme-retro .nav-link::after { background: #39ff14; }
+.theme-retro .animated-button {
+    border-radius: 0;
+    border-color: #39ff14;
+    color: #39ff14;
+    text-shadow: none;
+}
+.theme-retro .animated-button::before { background-color: #39ff14; }
+.theme-retro .animated-button:hover { color: #0a0a0a !important; }
+.theme-retro .project-card { border-radius: 0; box-shadow: none; border: 2px solid #39ff14; }
+.theme-retro .project-card-container { perspective: none; }
+.theme-retro .project-card { transform: none !important; }
+.theme-retro .project-card:hover { transform: none !important; }
+.theme-retro .timeline-content { border-radius: 0; background-color: #1c1917; border: 2px solid #39ff14; }
+.theme-retro .timeline-content::before { background: #1c1917; border: 2px solid #39ff14; }
+.theme-retro .timeline::before { background-color: #39ff14; }
+.theme-retro .contact-card { border-radius: 0; border: 2px solid #39ff14; background-color: #1c1917; }
+.theme-retro .contact-card:hover { background-color: #2e2a27; }
+.theme-retro .contact-card-icon { color: #39ff14; }
+.theme-retro .contact-card p { word-break: break-all; }
+
+.theme-retro #terminal-container {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #0a0a0a;
+    border: 2px solid #39ff14;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+.theme-retro .terminal-header {
+    background-color: #39ff14;
+    color: #0a0a0a;
+    border-radius: 0;
+    border-bottom: 2px solid #39ff14;
+}
+.theme-retro .terminal-header span, .theme-retro #terminal-close-btn {
+    color: #0a0a0a;
+}
+.theme-retro .terminal-prompt { color: #39ff14; }
+.theme-retro .terminal-input { color: #39ff14; }
+.theme-retro .terminal-output .response { color: #39ff14; }
+.theme-retro .terminal-output .text-green-400 { color: #a3e635; }
+.theme-retro .terminal-output .text-yellow-400 { color: #fde047; }
+.theme-retro .terminal-output .text-red-500 { color: #ef4444; }
+.theme-retro .terminal-output .text-sky-400 { color: #a3e635; }
+
+.retro-icon { display: none; }
+.theme-retro .modern-icon { display: none; }
+.theme-retro .retro-icon { display: block; }

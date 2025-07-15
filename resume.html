@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandon Rodriguez-Hernandez | Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Fira+Code:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #F9FAFB;
+            overflow-x: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .font-fira { font-family: 'Fira Code', monospace; }
+
+        /* --- 3D Background Canvas --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+        #bg-canvas.visible {
+            opacity: 1;
+        }
+
+        /* --- Navigation --- */
+        .nav-link::after {
+            content: ''; display: block; width: 0; height: 2px;
+            background: #38bdf8; transition: width .3s, background-color .5s;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        
+        /* --- Dropdown Menu --- */
+        .dropdown-menu {
+            transform: translateY(10px);
+        }
+
+        /* --- Animated Button --- */
+        .animated-button {
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease-in-out; z-index: 1;
+        }
+        .animated-button::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; background-color: #38bdf8;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            transition: width 0.4s ease-in-out, height 0.4s ease-in-out, background-color .5s;
+            z-index: -1;
+        }
+        .animated-button:hover::before { width: 225%; height: 500%; }
+        .animated-button:hover { color: #111827 !important; }
+
+        /* --- Page Content Styling --- */
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Interactive Resume Timeline --- */
+        .timeline-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 4rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: #38bdf8 #1f2937;
+        }
+        .timeline {
+            display: flex;
+            width: max-content;
+            padding: 0 5vw;
+            position: relative;
+        }
+        .timeline::before {
+            content: ''; position: absolute;
+            top: 50%; left: 0; width: 100%;
+            height: 4px; background-color: #374151;
+            transform: translateY(-50%);
+            transition: background-color .5s;
+        }
+        .timeline-item {
+            position: relative;
+            width: 300px;
+            margin: 0 40px;
+        }
+        .timeline-content {
+            background-color: #1f2937;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #374151;
+            position: relative;
+            transition: background-color .5s, border-color .5s;
+        }
+        .timeline-item:nth-child(odd) .timeline-content {
+            bottom: 40px;
+        }
+        .timeline-item:nth-child(even) .timeline-content {
+            top: 40px;
+        }
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            transform: translateX(-50%) rotate(45deg);
+            transition: background-color .5s, border-color .5s;
+        }
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            bottom: -7px;
+        }
+        .timeline-item:nth-child(even) .timeline-content::before {
+            top: -7px;
+        }
+        
+        /* --- Skill Graph --- */
+        #skill-graph-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            margin-top: 2rem;
+        }
+        #skill-graph-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* --- Terminal Easter Egg --- */
+        #terminal-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 90vw;
+            max-width: 700px;
+            height: 80vh;
+            max-height: 500px;
+            background-color: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #4f5b93;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease, background-color .5s, border-color .5s;
+        }
+        #terminal-container.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .terminal-header {
+            padding: 8px; background-color: #4f5b93;
+            border-top-left-radius: 7px; border-top-right-radius: 7px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: move;
+            transition: background-color .5s;
+        }
+        .terminal-body {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .terminal-input-line { display: flex; }
+        .terminal-prompt { color: #38bdf8; margin-right: 8px; transition: color .5s; }
+        .terminal-input {
+            background: transparent; border: none; outline: none;
+            color: #f1f1f1; flex-grow: 1;
+        }
+        .terminal-output .response { white-space: pre-wrap; }
+        .terminal-output .text-green-400 { color: #4ade80; }
+        .terminal-output .text-yellow-400 { color: #facc15; }
+        .terminal-output .text-red-500 { color: #ef4444; }
+        .terminal-output .text-sky-400 { color: #38bdf8; }
+        
+        /* --- Retro Theme --- */
+        body.theme-retro {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            color: #39ff14;
+            image-rendering: pixelated;
+        }
+        .theme-retro h1, .theme-retro h2, .theme-retro h3, .theme-retro h4 {
+            text-shadow: 2px 2px #14532d;
+        }
+        .theme-retro .text-sky-400 { color: #39ff14; }
+        .theme-retro .text-gray-300 { color: #a3e635; }
+        .theme-retro .text-gray-400 { color: #84cc16; }
+        .theme-retro .nav-link::after { background: #39ff14; }
+        .theme-retro .animated-button {
+            border-radius: 0;
+            border-color: #39ff14;
+            color: #39ff14;
+            text-shadow: none;
+        }
+        .theme-retro .animated-button::before { background-color: #39ff14; }
+        .theme-retro .animated-button:hover { color: #0a0a0a !important; }
+        
+        .theme-retro .dropdown-menu {
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+        }
+        .theme-retro .dropdown-menu a:hover {
+            background-color: #1c1917;
+        }
+
+        .theme-retro .timeline-content { border-radius: 0; background-color: #1c1917; border: 2px solid #39ff14; }
+        .theme-retro .timeline-content::before { background: #1c1917; border: 2px solid #39ff14; }
+        .theme-retro .timeline::before { background-color: #39ff14; }
+        
+        .theme-retro #terminal-container {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .theme-retro .terminal-header {
+            background-color: #39ff14;
+            color: #0a0a0a;
+            border-radius: 0;
+            border-bottom: 2px solid #39ff14;
+        }
+        .theme-retro .terminal-header span, .theme-retro #terminal-close-btn {
+            color: #0a0a0a;
+        }
+        .theme-retro .terminal-prompt { color: #39ff14; }
+        .theme-retro .terminal-input { color: #39ff14; }
+        .theme-retro .terminal-output .response { color: #39ff14; }
+        .theme-retro .terminal-output .text-green-400 { color: #a3e635; }
+        .theme-retro .terminal-output .text-yellow-400 { color: #fde047; }
+        .theme-retro .terminal-output .text-red-500 { color: #ef4444; }
+        .theme-retro .terminal-output .text-sky-400 { color: #a3e635; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-50 leading-relaxed">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header & Navigation -->
+    <header class="bg-gray-900/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-white hover:text-sky-400 transition-colors">BRH.</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="index.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Home</a>
+                <a href="about.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">About</a>
+                <a href="resume.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors active">Resume</a>
+                
+                <!-- Projects Dropdown Start -->
+                <div class="relative group">
+                    <button class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors flex items-center focus:outline-none">
+                        <span>Projects</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-gray-800 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                        <a href="projects.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">All Projects</a>
+                        <a href="project-1.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Real Estate ML Model</a>
+                        <a href="project-2.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Labor Cost Reduction</a>
+                        <a href="project-3.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Robotics Testing Software</a>
+                    </div>
+                </div>
+                <!-- Projects Dropdown End -->
+
+                <a href="contact.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="index.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Home</a>
+            <a href="about.html" class="block py-2 px-4 text-sm hover:bg-gray-700">About</a>
+            <a href="resume.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Resume</a>
+            <div>
+                <button id="mobile-projects-button" class="w-full text-left flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-700">
+                    <span>Projects</span>
+                    <svg class="w-4 h-4 transform transition-transform" id="mobile-projects-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="mobile-projects-menu" class="hidden pl-4">
+                    <a href="projects.html" class="block py-2 px-4 text-xs hover:bg-gray-700">All Projects</a>
+                    <a href="project-1.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Real Estate ML Model</a>
+                    <a href="project-2.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Labor Cost Reduction</a>
+                    <a href="project-3.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Robotics Testing Software</a>
+                </div>
+            </div>
+            <a href="contact.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pt-24 relative z-10">
+        <div id="page-resume" class="page">
+            <section class="page-content py-20 lg:py-32 min-h-screen">
+                <h2 class="text-4xl font-bold text-center mb-4">Interactive Resume</h2>
+                <p class="text-center text-gray-400 max-w-2xl mx-auto mb-12">Scroll or drag the timeline below to explore my journey.</p>
+                
+                <div class="timeline-container">
+                    <div class="timeline">
+                        <!-- Items will be injected by JavaScript -->
+                    </div>
+                </div>
+
+                <h2 class="text-4xl font-bold text-center mt-20 mb-4">Skill Graph</h2>
+                <p class="text-center text-gray-400 max-w-2xl mx-auto mb-8">Hover or click on a skill to see how it connects to others.</p>
+                
+                <div id="skill-graph-container">
+                    <canvas id="skill-graph-canvas"></canvas>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800/50 mt-16 relative z-10">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400 flex justify-center items-center">
+            <p>&copy; 2025 Brandon Rodriguez-Hernandez. All rights reserved.</p>
+            <button id="theme-toggle" title="Toggle Theme" class="ml-8 p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </button>
+        </div>
+    </footer>
+
+    <div id="terminal-container" class="font-fira">
+        <div class="terminal-header">
+            <span>brh_terminal</span>
+            <button id="terminal-close-btn" class="text-white">&times;</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="terminal-output" id="terminal-output"></div>
+            <div class="terminal-input-line">
+                <span class="terminal-prompt">guest@brh-portfolio:~$</span>
+                <input type="text" id="terminal-input" class="terminal-input" autofocus>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

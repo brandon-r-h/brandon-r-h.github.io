@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandon Rodriguez-Hernandez | Contact</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Fira+Code:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #F9FAFB;
+            overflow-x: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .font-fira { font-family: 'Fira Code', monospace; }
+
+        /* --- 3D Background Canvas --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+        #bg-canvas.visible {
+            opacity: 1;
+        }
+
+        /* --- Navigation --- */
+        .nav-link::after {
+            content: ''; display: block; width: 0; height: 2px;
+            background: #38bdf8; transition: width .3s, background-color .5s;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        
+        /* --- Dropdown Menu --- */
+        .dropdown-menu {
+            transform: translateY(10px);
+        }
+
+        /* --- Animated Button --- */
+        .animated-button {
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease-in-out; z-index: 1;
+        }
+        .animated-button::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; background-color: #38bdf8;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            transition: width 0.4s ease-in-out, height 0.4s ease-in-out, background-color .5s;
+            z-index: -1;
+        }
+        .animated-button:hover::before { width: 225%; height: 500%; }
+        .animated-button:hover { color: #111827 !important; }
+
+        /* --- Page Content Styling --- */
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Terminal Easter Egg --- */
+        #terminal-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 90vw;
+            max-width: 700px;
+            height: 80vh;
+            max-height: 500px;
+            background-color: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #4f5b93;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease, background-color .5s, border-color .5s;
+        }
+        #terminal-container.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .terminal-header {
+            padding: 8px; background-color: #4f5b93;
+            border-top-left-radius: 7px; border-top-right-radius: 7px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: move;
+            transition: background-color .5s;
+        }
+        .terminal-body {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .terminal-input-line { display: flex; }
+        .terminal-prompt { color: #38bdf8; margin-right: 8px; transition: color .5s; }
+        .terminal-input {
+            background: transparent; border: none; outline: none;
+            color: #f1f1f1; flex-grow: 1;
+        }
+        .terminal-output .response { white-space: pre-wrap; }
+        .terminal-output .text-green-400 { color: #4ade80; }
+        .terminal-output .text-yellow-400 { color: #facc15; }
+        .terminal-output .text-red-500 { color: #ef4444; }
+        .terminal-output .text-sky-400 { color: #38bdf8; }
+        
+        /* --- Contact Page --- */
+        .contact-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            transition: all 0.3s ease-out;
+            transform-style: preserve-3d;
+        }
+        .contact-card-content {
+            transition: transform 0.3s ease-out;
+            transform: translateZ(0);
+        }
+        .contact-card-icon {
+             transition: transform 0.3s ease-out;
+             transform: translateZ(0);
+        }
+        
+        /* --- Retro Theme --- */
+        body.theme-retro {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            color: #39ff14;
+            image-rendering: pixelated;
+        }
+        .theme-retro h1, .theme-retro h2, .theme-retro h3, .theme-retro h4 {
+            text-shadow: 2px 2px #14532d;
+        }
+        .theme-retro .text-sky-400 { color: #39ff14; }
+        .theme-retro .text-gray-300 { color: #a3e635; }
+        .theme-retro .text-gray-400 { color: #84cc16; }
+        .theme-retro .nav-link::after { background: #39ff14; }
+        .theme-retro .animated-button {
+            border-radius: 0;
+            border-color: #39ff14;
+            color: #39ff14;
+            text-shadow: none;
+        }
+        .theme-retro .animated-button::before { background-color: #39ff14; }
+        .theme-retro .animated-button:hover { color: #0a0a0a !important; }
+        .theme-retro .contact-card { border-radius: 0; border: 2px solid #39ff14; background-color: #1c1917; }
+        .theme-retro .contact-card:hover { background-color: #2e2a27; }
+        .theme-retro .contact-card-icon { color: #39ff14; }
+        .theme-retro .contact-card p { word-break: break-all; }
+        
+        .theme-retro .dropdown-menu {
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+        }
+        .theme-retro .dropdown-menu a:hover {
+            background-color: #1c1917;
+        }
+        
+        .theme-retro #terminal-container {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .theme-retro .terminal-header {
+            background-color: #39ff14;
+            color: #0a0a0a;
+            border-radius: 0;
+            border-bottom: 2px solid #39ff14;
+        }
+        .theme-retro .terminal-header span, .theme-retro #terminal-close-btn {
+            color: #0a0a0a;
+        }
+        .theme-retro .terminal-prompt { color: #39ff14; }
+        .theme-retro .terminal-input { color: #39ff14; }
+        .theme-retro .terminal-output .response { color: #39ff14; }
+        .theme-retro .terminal-output .text-green-400 { color: #a3e635; }
+        .theme-retro .terminal-output .text-yellow-400 { color: #fde047; }
+        .theme-retro .terminal-output .text-red-500 { color: #ef4444; }
+        .theme-retro .terminal-output .text-sky-400 { color: #a3e635; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-50 leading-relaxed">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header & Navigation -->
+    <header class="bg-gray-900/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-white hover:text-sky-400 transition-colors">BRH.</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="index.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Home</a>
+                <a href="about.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">About</a>
+                <a href="resume.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Resume</a>
+                
+                <!-- Projects Dropdown Start -->
+                <div class="relative group">
+                    <button class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors flex items-center focus:outline-none">
+                        <span>Projects</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-gray-800 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                        <a href="projects.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">All Projects</a>
+                        <a href="project-1.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Real Estate ML Model</a>
+                        <a href="project-2.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Labor Cost Reduction</a>
+                        <a href="project-3.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Robotics Testing Software</a>
+                    </div>
+                </div>
+                <!-- Projects Dropdown End -->
+
+                <a href="contact.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors active">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="index.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Home</a>
+            <a href="about.html" class="block py-2 px-4 text-sm hover:bg-gray-700">About</a>
+            <a href="resume.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Resume</a>
+            <div>
+                <button id="mobile-projects-button" class="w-full text-left flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-700">
+                    <span>Projects</span>
+                    <svg class="w-4 h-4 transform transition-transform" id="mobile-projects-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="mobile-projects-menu" class="hidden pl-4">
+                    <a href="projects.html" class="block py-2 px-4 text-xs hover:bg-gray-700">All Projects</a>
+                    <a href="project-1.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Real Estate ML Model</a>
+                    <a href="project-2.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Labor Cost Reduction</a>
+                    <a href="project-3.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Robotics Testing Software</a>
+                </div>
+            </div>
+            <a href="contact.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pt-24 relative z-10">
+        <div id="page-contact" class="page">
+             <section class="page-content py-20 lg:py-32 min-h-screen flex flex-col justify-center items-center">
+                <h2 class="text-4xl font-bold text-center mb-4">Get In Touch</h2>
+                <p class="text-center text-gray-400 max-w-2xl mx-auto mb-12">
+                    I'm always open to new opportunities and collaborations. Let's connect.
+                </p>
+                <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8" style="perspective: 1000px;">
+                    <a href="mailto:bertcr7101@gmail.com" class="contact-card p-6 rounded-lg text-center">
+                        <div class="contact-card-content">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="contact-card-icon h-12 w-12 text-sky-400 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <h3 class="text-xl font-bold">Email</h3>
+                            <p class="text-gray-400 break-all">bertcr7101@gmail.com</p>
+                        </div>
+                    </a>
+                    <a href="https://github.com/brandon-r-h" target="_blank" rel="noopener noreferrer" class="contact-card p-6 rounded-lg text-center">
+                        <div class="contact-card-content">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="contact-card-icon h-12 w-12 text-sky-400 mb-4 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            <h3 class="text-xl font-bold">GitHub</h3>
+                            <p class="text-gray-400">@brandon-r-h</p>
+                        </div>
+                    </a>
+                    <a href="https://www.linkedin.com/in/brandonrh/" class="contact-card p-6 rounded-lg text-center">
+                         <div class="contact-card-content">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="contact-card-icon h-12 w-12 text-sky-400 mb-4 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                            <h3 class="text-xl font-bold">LinkedIn</h3>
+                            <p class="text-gray-400">Connect with me</p>
+                        </div>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800/50 mt-16 relative z-10">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400 flex justify-center items-center">
+            <p>&copy; 2025 Brandon Rodriguez-Hernandez. All rights reserved.</p>
+            <button id="theme-toggle" title="Toggle Theme" class="ml-8 p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </button>
+        </div>
+    </footer>
+
+    <div id="terminal-container" class="font-fira">
+        <div class="terminal-header">
+            <span>brh_terminal</span>
+            <button id="terminal-close-btn" class="text-white">&times;</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="terminal-output" id="terminal-output"></div>
+            <div class="terminal-input-line">
+                <span class="terminal-prompt">guest@brh-portfolio:~$</span>
+                <input type="text" id="terminal-input" class="terminal-input" autofocus>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const bgCanvas = document.getElementById('bg-canvas');
+            const terminalContainer = document.getElementById('terminal-container');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalOutput = document.getElementById('terminal-output');
+            const terminalBody = document.getElementById('terminal-body');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileProjectsButton = document.getElementById('mobile-projects-button');
+            const mobileProjectsMenu = document.getElementById('mobile-projects-menu');
+            const mobileProjectsArrow = document.getElementById('mobile-projects-arrow');
+
+            function applyTheme(theme) {
+                if (theme === 'retro') {
+                    body.classList.add('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.remove('visible');
+                } else {
+                    body.classList.remove('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.add('visible');
+                }
+            }
+
+            themeToggle.addEventListener('click', () => {
+                const isRetro = body.classList.toggle('theme-retro');
+                const newTheme = isRetro ? 'retro' : 'modern';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'modern';
+            applyTheme(savedTheme);
+
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            if (mobileProjectsButton) {
+                mobileProjectsButton.addEventListener('click', () => {
+                    mobileProjectsMenu.classList.toggle('hidden');
+                    mobileProjectsArrow.classList.toggle('rotate-180');
+                });
+            }
+
+            if (bgCanvas) {
+                let scene, camera, renderer, stars;
+                function init3DBackground() {
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                    camera.position.z = 1;
+                    camera.rotation.x = Math.PI / 2;
+                    renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    if (!body.classList.contains('theme-retro')) {
+                        bgCanvas.classList.add('visible');
+                    }
+                    const starGeo = new THREE.BufferGeometry();
+                    const starCount = 6000;
+                    const posArray = new Float32Array(starCount * 3);
+                    for (let i = 0; i < starCount * 3; i++) {
+                        posArray[i] = (Math.random() - 0.5) * 5;
+                    }
+                    starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                    const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.005 });
+                    stars = new THREE.Points(starGeo, starMaterial);
+                    scene.add(stars);
+                    window.addEventListener('resize', onWindowResize, false);
+                    animate3D();
+                }
+                function animate3D() {
+                    stars.rotation.z += 0.0002;
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate3D);
+                }
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                init3DBackground();
+            }
+
+            if (document.getElementById('page-contact')) {
+                document.querySelectorAll('.contact-card').forEach(card => {
+                    card.addEventListener('mousemove', e => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const { width, height } = rect;
+                        const rotateX = (y / height - 0.5) * -15;
+                        const rotateY = (x / width - 0.5) * 15;
+                        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                        card.querySelector('.contact-card-content').style.transform = `translateZ(20px)`;
+                        card.querySelector('.contact-card-icon').style.transform = `translateZ(50px) translateY(-10px)`;
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transform = 'rotateX(0) rotateY(0)';
+                        card.querySelector('.contact-card-content').style.transform = `translateZ(0)`;
+                        card.querySelector('.contact-card-icon').style.transform = `translateZ(0) translateY(0)`;
+                    });
+                });
+            }
+
+            async function runHackSimulation() {
+                const steps = [
+                    { text: 'Pinging 127.0.0.1 with 32 bytes of data...', delay: 500 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Ping statistics for 127.0.0.1: Packets: Sent = 2, Received = 2, Lost = 0 (0% loss)', delay: 500 },
+                    { text: 'Initiating port scan on localhost...', style: 'text-yellow-400', delay: 1000 },
+                    { text: 'Discovered open port: 443/https', delay: 500 },
+                    { text: 'Discovered open port: 3000/dev-server', delay: 500 },
+                    { text: 'Discovered open port: 8080/http-alt', delay: 500 },
+                    { text: 'Analyzing port 8080...', delay: 1000 },
+                    { text: 'Vulnerability found: CVE-2024-BRH-01 (Unsecured DOM interface)', style: 'text-red-500', delay: 500 },
+                    { text: 'Executing exploit...', delay: 1500 },
+                    { text: 'Bypassing firewall... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Injecting payload... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Gaining root access...', style: 'text-yellow-400', delay: 1200 },
+                    { text: 'Root access granted.', style: 'text-red-500 font-bold', delay: 500 },
+                    { text: 'Downloading user data...', delay: 1000 },
+                    { text: `  > Device: ${navigator.platform}`, delay: 300 },
+                    { text: `  > Browser: ${navigator.userAgent.match(/(firefox|msie|chrome|safari|trident)/i)[0]}`, delay: 300 },
+                    { text: `  > Language: ${navigator.language}`, delay: 300 },
+                    { text: `  > Cookies Enabled: ${navigator.cookieEnabled}`, delay: 300 },
+                    { text: '...', delay: 1000 },
+                    { text: 'Just kidding! This is a simulation.', style: 'text-sky-400', delay: 500 },
+                    { text: 'Your data is safe. Thanks for playing!', style: 'text-sky-400', delay: 500 },
+                ];
+                terminalInput.disabled = true;
+                for (const step of steps) {
+                    await new Promise(resolve => setTimeout(resolve, step.delay));
+                    printToTerminal(step.text, `response ${step.style || ''}`);
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+                terminalInput.disabled = false;
+                terminalInput.focus();
+            }
+            const commands = {
+                help: `Available commands:\n  help      - Show this message\n  about     - Display a short bio\n  projects  - List my main projects\n  contact   - Show contact information\n  skills    - List my technical skills\n  hack_me   - Run a simulation\n  clear     - Clear the terminal\n  exit      - Close the terminal`,
+                about: "I'm an experienced data engineer from Salem, OR, who understands the scarcity of time. I'm passionate about architecting and implementing data-centric systems that yield substantial improvements in efficiency and cost-effectiveness.",
+                projects: `1. Real Estate ML Model\n2. Labor Cost Reduction Analysis\n3. Robotics Testing Software`,
+                contact: `Email: bertcr7101@gmail.com\nPhone: 971-283-4050\nGitHub: https://github.com/brandon-r-h`,
+                skills: `Python, SQL, Data Pipelines, Machine Learning, Cloud Computing, React JS, Flask, Git, C++, R, API Architecture, Web Dev, Debugging, Statistical Modeling`,
+                hack_me: runHackSimulation,
+            };
+            function toggleTerminal(visible) {
+                terminalContainer.classList.toggle('visible', visible);
+                if (visible) terminalInput.focus();
+            }
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey && e.key === 't') { e.preventDefault(); toggleTerminal(true); }
+                if (e.key === 'Escape' && terminalContainer.classList.contains('visible')) { toggleTerminal(false); }
+            });
+            document.getElementById('terminal-close-btn').addEventListener('click', () => toggleTerminal(false));
+            terminalInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !terminalInput.disabled) {
+                    const command = terminalInput.value.trim().toLowerCase();
+                    printToTerminal(`guest@brh-portfolio:~$ ${command}`, 'command');
+                    if (command === 'clear') { terminalOutput.innerHTML = ''; }
+                    else if (command === 'exit') { toggleTerminal(false); }
+                    else if (commands[command]) {
+                        if (typeof commands[command] === 'function') commands[command]();
+                        else printToTerminal(commands[command], 'response');
+                    }
+                    else { printToTerminal(`Command not found: ${command}. Type 'help'.`, 'response'); }
+                    terminalInput.value = '';
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+            });
+            function printToTerminal(text, className) { terminalOutput.innerHTML += `<div class="response ${className}">${text}</div>`; }
+            printToTerminal("Welcome! Type 'help' to get started.", 'response');
+        });
+    </script>
+</body>
+</html>

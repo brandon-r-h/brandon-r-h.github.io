@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandon Rodriguez-Hernandez | Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Fira+Code:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #F9FAFB;
+            overflow-x: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .font-fira { font-family: 'Fira Code', monospace; }
+
+        /* --- 3D Background Canvas --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+        #bg-canvas.visible {
+            opacity: 1;
+        }
+
+        /* --- Navigation --- */
+        .nav-link::after {
+            content: ''; display: block; width: 0; height: 2px;
+            background: #38bdf8; transition: width .3s, background-color .5s;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        
+        /* --- Dropdown Menu --- */
+        .dropdown-menu {
+            transform: translateY(10px);
+        }
+
+        /* --- Animated Button --- */
+        .animated-button {
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease-in-out; z-index: 1;
+        }
+        .animated-button::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; background-color: #38bdf8;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            transition: width 0.4s ease-in-out, height 0.4s ease-in-out, background-color .5s;
+            z-index: -1;
+        }
+        .animated-button:hover::before { width: 225%; height: 500%; }
+        .animated-button:hover { color: #111827 !important; }
+
+        /* --- Page Content Styling --- */
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* --- Terminal Easter Egg --- */
+        #terminal-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 90vw;
+            max-width: 700px;
+            height: 80vh;
+            max-height: 500px;
+            background-color: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #4f5b93;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease, background-color .5s, border-color .5s;
+        }
+        #terminal-container.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .terminal-header {
+            padding: 8px; background-color: #4f5b93;
+            border-top-left-radius: 7px; border-top-right-radius: 7px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: move;
+            transition: background-color .5s;
+        }
+        .terminal-body {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .terminal-input-line { display: flex; }
+        .terminal-prompt { color: #38bdf8; margin-right: 8px; transition: color .5s; }
+        .terminal-input {
+            background: transparent; border: none; outline: none;
+            color: #f1f1f1; flex-grow: 1;
+        }
+        .terminal-output .response { white-space: pre-wrap; }
+        .terminal-output .text-green-400 { color: #4ade80; }
+        .terminal-output .text-yellow-400 { color: #facc15; }
+        .terminal-output .text-red-500 { color: #ef4444; }
+        .terminal-output .text-sky-400 { color: #38bdf8; }
+        
+        /* --- Retro Theme --- */
+        body.theme-retro {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            color: #39ff14;
+            image-rendering: pixelated;
+        }
+        .theme-retro h1, .theme-retro h2, .theme-retro h3, .theme-retro h4 {
+            text-shadow: 2px 2px #14532d;
+        }
+        .theme-retro .text-sky-400 { color: #39ff14; }
+        .theme-retro .text-gray-300 { color: #a3e635; }
+        .theme-retro .text-gray-400 { color: #84cc16; }
+        .theme-retro .nav-link::after { background: #39ff14; }
+        .theme-retro .animated-button {
+            border-radius: 0;
+            border-color: #39ff14;
+            color: #39ff14;
+            text-shadow: none;
+        }
+        .theme-retro .animated-button::before { background-color: #39ff14; }
+        .theme-retro .animated-button:hover { color: #0a0a0a !important; }
+        
+        .theme-retro .dropdown-menu {
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+        }
+        .theme-retro .dropdown-menu a:hover {
+            background-color: #1c1917;
+        }
+        
+        .theme-retro #terminal-container {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .theme-retro .terminal-header {
+            background-color: #39ff14;
+            color: #0a0a0a;
+            border-radius: 0;
+            border-bottom: 2px solid #39ff14;
+        }
+        .theme-retro .terminal-header span, .theme-retro #terminal-close-btn {
+            color: #0a0a0a;
+        }
+        .theme-retro .terminal-prompt { color: #39ff14; }
+        .theme-retro .terminal-input { color: #39ff14; }
+        .theme-retro .terminal-output .response { color: #39ff14; }
+        .theme-retro .terminal-output .text-green-400 { color: #a3e635; }
+        .theme-retro .terminal-output .text-yellow-400 { color: #fde047; }
+        .theme-retro .terminal-output .text-red-500 { color: #ef4444; }
+        .theme-retro .terminal-output .text-sky-400 { color: #a3e635; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-50 leading-relaxed">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header & Navigation -->
+    <header class="bg-gray-900/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-white hover:text-sky-400 transition-colors">BRH.</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="index.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors active">Home</a>
+                <a href="about.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">About</a>
+                <a href="resume.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Resume</a>
+                
+                <!-- Projects Dropdown Start -->
+                <div class="relative group">
+                    <button class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors flex items-center focus:outline-none">
+                        <span>Projects</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-gray-800 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                        <a href="projects.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">All Projects</a>
+                        <a href="project-1.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Real Estate ML Model</a>
+                        <a href="project-2.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Labor Cost Reduction</a>
+                        <a href="project-3.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Robotics Testing Software</a>
+                    </div>
+                </div>
+                <!-- Projects Dropdown End -->
+
+                <a href="contact.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="index.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Home</a>
+            <a href="about.html" class="block py-2 px-4 text-sm hover:bg-gray-700">About</a>
+            <a href="resume.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Resume</a>
+            <div>
+                <button id="mobile-projects-button" class="w-full text-left flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-700">
+                    <span>Projects</span>
+                    <svg class="w-4 h-4 transform transition-transform" id="mobile-projects-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="mobile-projects-menu" class="hidden pl-4">
+                    <a href="projects.html" class="block py-2 px-4 text-xs hover:bg-gray-700">All Projects</a>
+                    <a href="project-1.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Real Estate ML Model</a>
+                    <a href="project-2.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Labor Cost Reduction</a>
+                    <a href="project-3.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Robotics Testing Software</a>
+                </div>
+            </div>
+            <a href="contact.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pt-24 relative z-10">
+        <div id="page-home" class="page">
+            <section class="page-content min-h-screen flex flex-col justify-center items-start">
+                <h1 class="text-5xl md:text-7xl font-extrabold text-white leading-tight">
+                    Hi, I'm <span id="scramble-text" class="text-sky-400">Brandon Rodriguez-Hernandez</span>.
+                </h1>
+                <p class="text-2xl md:text-3xl mt-4 font-light text-gray-300">Data Engineer.</p>
+                <p class="mt-8 max-w-2xl text-lg text-gray-400">
+                    Experienced data engineer, who is passionate about creating more value for people's time. The most valuable resource someone could have.
+                </p>
+                <div class="mt-12">
+                    <a href="projects.html" class="animated-button bg-transparent border-2 border-sky-400 text-sky-400 font-bold py-3 px-8 rounded-full inline-block">
+                        View My Work
+                    </a>
+                </div>
+                 <p class="mt-24 text-sm text-gray-500 font-fira">Pro-tip: Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Ctrl</kbd> + <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">T</kbd> to open the terminal.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800/50 mt-16 relative z-10">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400 flex justify-center items-center">
+            <p>&copy; 2025 Brandon Rodriguez-Hernandez. All rights reserved.</p>
+            <button id="theme-toggle" title="Toggle Theme" class="ml-8 p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </button>
+        </div>
+    </footer>
+
+    <div id="terminal-container" class="font-fira">
+        <div class="terminal-header">
+            <span>brh_terminal</span>
+            <button id="terminal-close-btn" class="text-white">&times;</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="terminal-output" id="terminal-output"></div>
+            <div class="terminal-input-line">
+                <span class="terminal-prompt">guest@brh-portfolio:~$</span>
+                <input type="text" id="terminal-input" class="terminal-input" autofocus>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Shared Logic ---
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const bgCanvas = document.getElementById('bg-canvas');
+            const terminalContainer = document.getElementById('terminal-container');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalOutput = document.getElementById('terminal-output');
+            const terminalBody = document.getElementById('terminal-body');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileProjectsButton = document.getElementById('mobile-projects-button');
+            const mobileProjectsMenu = document.getElementById('mobile-projects-menu');
+            const mobileProjectsArrow = document.getElementById('mobile-projects-arrow');
+
+            // --- Theme Management ---
+            function applyTheme(theme) {
+                if (theme === 'retro') {
+                    body.classList.add('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.remove('visible');
+                } else {
+                    body.classList.remove('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.add('visible');
+                }
+            }
+
+            themeToggle.addEventListener('click', () => {
+                const isRetro = body.classList.toggle('theme-retro');
+                const newTheme = isRetro ? 'retro' : 'modern';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'modern';
+            applyTheme(savedTheme);
+
+            // --- Mobile Menu ---
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            if (mobileProjectsButton) {
+                mobileProjectsButton.addEventListener('click', () => {
+                    mobileProjectsMenu.classList.toggle('hidden');
+                    mobileProjectsArrow.classList.toggle('rotate-180');
+                });
+            }
+
+            // --- 3D Background ---
+            if (bgCanvas) {
+                let scene, camera, renderer, stars;
+                function init3DBackground() {
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                    camera.position.z = 1;
+                    camera.rotation.x = Math.PI / 2;
+                    renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    if (!body.classList.contains('theme-retro')) {
+                        bgCanvas.classList.add('visible');
+                    }
+                    const starGeo = new THREE.BufferGeometry();
+                    const starCount = 6000;
+                    const posArray = new Float32Array(starCount * 3);
+                    for (let i = 0; i < starCount * 3; i++) {
+                        posArray[i] = (Math.random() - 0.5) * 5;
+                    }
+                    starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                    const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.005 });
+                    stars = new THREE.Points(starGeo, starMaterial);
+                    scene.add(stars);
+                    window.addEventListener('resize', onWindowResize, false);
+                    animate3D();
+                }
+                function animate3D() {
+                    stars.rotation.z += 0.0002;
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate3D);
+                }
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                init3DBackground();
+            }
+
+            // --- Text Scramble Effect ---
+            if (document.getElementById('scramble-text')) {
+                class TextScramble {
+                    constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#________'; this.update = this.update.bind(this); }
+                    setText(newText) {
+                        const oldText = this.el.innerText;
+                        const length = Math.max(oldText.length, newText.length);
+                        const promise = new Promise((resolve) => this.resolve = resolve);
+                        this.queue = [];
+                        for (let i = 0; i < length; i++) {
+                            const from = oldText[i] || ''; const to = newText[i] || '';
+                            const start = Math.floor(Math.random() * 80);
+                            const end = start + Math.floor(Math.random() * 80);
+                            this.queue.push({ from, to, start, end });
+                        }
+                        cancelAnimationFrame(this.frameRequest); this.frame = 0; this.update(); return promise;
+                    }
+                    update() {
+                        let output = ''; let complete = 0;
+                        for (let i = 0, n = this.queue.length; i < n; i++) {
+                            let { from, to, start, end, char } = this.queue[i];
+                            if (this.frame >= end) { complete++; output += to; } 
+                            else if (this.frame >= start) {
+                                if (!char || Math.random() < 0.28) { char = this.randomChar(); this.queue[i].char = char; }
+                                output += `<span class="opacity-50">${char}</span>`;
+                            } else { output += from; }
+                        }
+                        this.el.innerHTML = output;
+                        if (complete === this.queue.length) { this.resolve(); } 
+                        else { this.frameRequest = requestAnimationFrame(this.update); this.frame++; }
+                    }
+                    randomChar() { return this.chars[Math.floor(Math.random() * this.chars.length)]; }
+                }
+                const scrambleEl = document.getElementById('scramble-text');
+                const fx = new TextScramble(scrambleEl);
+                setTimeout(() => {
+                    fx.setText(scrambleEl.textContent);
+                }, 500);
+            }
+
+            // --- Terminal ---
+            async function runHackSimulation() {
+                const steps = [
+                    { text: 'Pinging 127.0.0.1 with 32 bytes of data...', delay: 500 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Ping statistics for 127.0.0.1: Packets: Sent = 2, Received = 2, Lost = 0 (0% loss)', delay: 500 },
+                    { text: 'Initiating port scan on localhost...', style: 'text-yellow-400', delay: 1000 },
+                    { text: 'Discovered open port: 443/https', delay: 500 },
+                    { text: 'Discovered open port: 3000/dev-server', delay: 500 },
+                    { text: 'Discovered open port: 8080/http-alt', delay: 500 },
+                    { text: 'Analyzing port 8080...', delay: 1000 },
+                    { text: 'Vulnerability found: CVE-2024-BRH-01 (Unsecured DOM interface)', style: 'text-red-500', delay: 500 },
+                    { text: 'Executing exploit...', delay: 1500 },
+                    { text: 'Bypassing firewall... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Injecting payload... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Gaining root access...', style: 'text-yellow-400', delay: 1200 },
+                    { text: 'Root access granted.', style: 'text-red-500 font-bold', delay: 500 },
+                    { text: 'Downloading user data...', delay: 1000 },
+                    { text: `  > Device: ${navigator.platform}`, delay: 300 },
+                    { text: `  > Browser: ${navigator.userAgent.match(/(firefox|msie|chrome|safari|trident)/i)[0]}`, delay: 300 },
+                    { text: `  > Language: ${navigator.language}`, delay: 300 },
+                    { text: `  > Cookies Enabled: ${navigator.cookieEnabled}`, delay: 300 },
+                    { text: '...', delay: 1000 },
+                    { text: 'Just kidding! This is a simulation.', style: 'text-sky-400', delay: 500 },
+                    { text: 'Your data is safe. Thanks for playing!', style: 'text-sky-400', delay: 500 },
+                ];
+                terminalInput.disabled = true;
+                for (const step of steps) {
+                    await new Promise(resolve => setTimeout(resolve, step.delay));
+                    printToTerminal(step.text, `response ${step.style || ''}`);
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+                terminalInput.disabled = false;
+                terminalInput.focus();
+            }
+            const commands = {
+                help: `Available commands:\n  help      - Show this message\n  about     - Display a short bio\n  projects  - List my main projects\n  contact   - Show contact information\n  skills    - List my technical skills\n  hack_me   - Run a simulation\n  clear     - Clear the terminal\n  exit      - Close the terminal`,
+                about: "I'm an experienced data engineer from Salem, OR, who understands the scarcity of time. I'm passionate about architecting and implementing data-centric systems that yield substantial improvements in efficiency and cost-effectiveness.",
+                projects: `1. Real Estate ML Model\n2. Labor Cost Reduction Analysis\n3. Robotics Testing Software`,
+                contact: `Email: bertcr7101@gmail.com\nPhone: 971-283-4050\nGitHub: https://github.com/brandon-r-h`,
+                skills: `Python, SQL, Data Pipelines, Machine Learning, Cloud Computing, React JS, Flask, Git, C++, R, API Architecture, Web Dev, Debugging, Statistical Modeling`,
+                hack_me: runHackSimulation,
+            };
+            function toggleTerminal(visible) {
+                terminalContainer.classList.toggle('visible', visible);
+                if (visible) terminalInput.focus();
+            }
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey && e.key === 't') { e.preventDefault(); toggleTerminal(true); }
+                if (e.key === 'Escape' && terminalContainer.classList.contains('visible')) { toggleTerminal(false); }
+            });
+            document.getElementById('terminal-close-btn').addEventListener('click', () => toggleTerminal(false));
+            terminalInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !terminalInput.disabled) {
+                    const command = terminalInput.value.trim().toLowerCase();
+                    printToTerminal(`guest@brh-portfolio:~$ ${command}`, 'command');
+                    if (command === 'clear') { terminalOutput.innerHTML = ''; }
+                    else if (command === 'exit') { toggleTerminal(false); }
+                    else if (commands[command]) {
+                        if (typeof commands[command] === 'function') commands[command]();
+                        else printToTerminal(commands[command], 'response');
+                    }
+                    else { printToTerminal(`Command not found: ${command}. Type 'help'.`, 'response'); }
+                    terminalInput.value = '';
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+            });
+            function printToTerminal(text, className) { terminalOutput.innerHTML += `<div class="response ${className}">${text}</div>`; }
+            printToTerminal("Welcome! Type 'help' to get started.", 'response');
+        });
+    </script>
+</body>
+</html>

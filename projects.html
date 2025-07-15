@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandon Rodriguez-Hernandez | Projects</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Fira+Code:wght@400;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #F9FAFB;
+            overflow-x: hidden;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        .font-fira { font-family: 'Fira Code', monospace; }
+
+        /* --- 3D Background Canvas --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+        #bg-canvas.visible {
+            opacity: 1;
+        }
+
+        /* --- Navigation --- */
+        .nav-link::after {
+            content: ''; display: block; width: 0; height: 2px;
+            background: #38bdf8; transition: width .3s, background-color .5s;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        
+        /* --- Dropdown Menu --- */
+        .dropdown-menu {
+            transform: translateY(10px);
+        }
+
+        /* --- Animated Button --- */
+        .animated-button {
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease-in-out; z-index: 1;
+        }
+        .animated-button::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; background-color: #38bdf8;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            transition: width 0.4s ease-in-out, height 0.4s ease-in-out, background-color .5s;
+            z-index: -1;
+        }
+        .animated-button:hover::before { width: 225%; height: 500%; }
+        .animated-button:hover { color: #111827 !important; }
+
+        /* --- Page Content Styling --- */
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- 3D Project Card Hover Effect --- */
+        .project-card-container {
+            perspective: 1000px;
+        }
+        .project-card {
+            transition: transform 0.2s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* --- Terminal Easter Egg --- */
+        #terminal-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 90vw;
+            max-width: 700px;
+            height: 80vh;
+            max-height: 500px;
+            background-color: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #4f5b93;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease, background-color .5s, border-color .5s;
+        }
+        #terminal-container.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+        .terminal-header {
+            padding: 8px; background-color: #4f5b93;
+            border-top-left-radius: 7px; border-top-right-radius: 7px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: move;
+            transition: background-color .5s;
+        }
+        .terminal-body {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .terminal-input-line { display: flex; }
+        .terminal-prompt { color: #38bdf8; margin-right: 8px; transition: color .5s; }
+        .terminal-input {
+            background: transparent; border: none; outline: none;
+            color: #f1f1f1; flex-grow: 1;
+        }
+        .terminal-output .response { white-space: pre-wrap; }
+        .terminal-output .text-green-400 { color: #4ade80; }
+        .terminal-output .text-yellow-400 { color: #facc15; }
+        .terminal-output .text-red-500 { color: #ef4444; }
+        .terminal-output .text-sky-400 { color: #38bdf8; }
+        
+        /* --- Retro Theme --- */
+        body.theme-retro {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            color: #39ff14;
+            image-rendering: pixelated;
+        }
+        .theme-retro h1, .theme-retro h2, .theme-retro h3, .theme-retro h4 {
+            text-shadow: 2px 2px #14532d;
+        }
+        .theme-retro .text-sky-400 { color: #39ff14; }
+        .theme-retro .text-gray-300 { color: #a3e635; }
+        .theme-retro .text-gray-400 { color: #84cc16; }
+        .theme-retro .nav-link::after { background: #39ff14; }
+        .theme-retro .animated-button {
+            border-radius: 0;
+            border-color: #39ff14;
+            color: #39ff14;
+            text-shadow: none;
+        }
+        .theme-retro .animated-button::before { background-color: #39ff14; }
+        .theme-retro .animated-button:hover { color: #0a0a0a !important; }
+        .theme-retro .project-card { border-radius: 0; box-shadow: none; border: 2px solid #39ff14; }
+        .theme-retro .project-card-container { perspective: none; }
+        .theme-retro .project-card { transform: none !important; }
+        .theme-retro .project-card:hover { transform: none !important; }
+        
+        .theme-retro .dropdown-menu {
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+        }
+        .theme-retro .dropdown-menu a:hover {
+            background-color: #1c1917;
+        }
+        
+        .theme-retro #terminal-container {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0a0a0a;
+            border: 2px solid #39ff14;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        .theme-retro .terminal-header {
+            background-color: #39ff14;
+            color: #0a0a0a;
+            border-radius: 0;
+            border-bottom: 2px solid #39ff14;
+        }
+        .theme-retro .terminal-header span, .theme-retro #terminal-close-btn {
+            color: #0a0a0a;
+        }
+        .theme-retro .terminal-prompt { color: #39ff14; }
+        .theme-retro .terminal-input { color: #39ff14; }
+        .theme-retro .terminal-output .response { color: #39ff14; }
+        .theme-retro .terminal-output .text-green-400 { color: #a3e635; }
+        .theme-retro .terminal-output .text-yellow-400 { color: #fde047; }
+        .theme-retro .terminal-output .text-red-500 { color: #ef4444; }
+        .theme-retro .terminal-output .text-sky-400 { color: #a3e635; }
+
+        .retro-icon { display: none; }
+        .theme-retro .modern-icon { display: none; }
+        .theme-retro .retro-icon { display: block; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-50 leading-relaxed">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Header & Navigation -->
+    <header class="bg-gray-900/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold text-white hover:text-sky-400 transition-colors">BRH.</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="index.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Home</a>
+                <a href="about.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">About</a>
+                <a href="resume.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Resume</a>
+                
+                <!-- Projects Dropdown Start -->
+                <div class="relative group">
+                    <button class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors flex items-center focus:outline-none active">
+                        <span>Projects</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-gray-800 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                        <a href="projects.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">All Projects</a>
+                        <a href="project-1.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Real Estate ML Model</a>
+                        <a href="project-2.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Labor Cost Reduction</a>
+                        <a href="project-3.html" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Robotics Testing Software</a>
+                    </div>
+                </div>
+                <!-- Projects Dropdown End -->
+
+                <a href="contact.html" class="nav-link text-lg font-medium text-gray-300 hover:text-sky-400 transition-colors">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="index.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Home</a>
+            <a href="about.html" class="block py-2 px-4 text-sm hover:bg-gray-700">About</a>
+            <a href="resume.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Resume</a>
+            <div>
+                <button id="mobile-projects-button" class="w-full text-left flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-700">
+                    <span>Projects</span>
+                    <svg class="w-4 h-4 transform transition-transform" id="mobile-projects-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div id="mobile-projects-menu" class="hidden pl-4">
+                    <a href="projects.html" class="block py-2 px-4 text-xs hover:bg-gray-700">All Projects</a>
+                    <a href="project-1.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Real Estate ML Model</a>
+                    <a href="project-2.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Labor Cost Reduction</a>
+                    <a href="project-3.html" class="block py-2 px-4 text-xs hover:bg-gray-700">Robotics Testing Software</a>
+                </div>
+            </div>
+            <a href="contact.html" class="block py-2 px-4 text-sm hover:bg-gray-700">Contact</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pt-24 relative z-10">
+        <div id="page-projects" class="page">
+             <section class="page-content py-20 lg:py-32 min-h-screen">
+                <h2 class="text-4xl font-bold text-center mb-4">Projects</h2>
+                <p class="text-center text-gray-400 max-w-2xl mx-auto mb-8">An overview of my recent work. Click on any project to see more details.</p>
+                <div class="flex justify-center space-x-2 md:space-x-4 mb-12">
+                    <button class="project-filter-btn active bg-sky-600 text-white px-4 py-2 rounded-full text-sm font-semibold" data-filter="all">All</button>
+                    <button class="project-filter-btn bg-gray-700 hover:bg-sky-600 text-gray-200 px-4 py-2 rounded-full text-sm font-semibold transition-colors" data-filter="python">Python</button>
+                    <button class="project-filter-btn bg-gray-700 hover:bg-sky-600 text-gray-200 px-4 py-2 rounded-full text-sm font-semibold transition-colors" data-filter="ml">Machine Learning</button>
+                    <button class="project-filter-btn bg-gray-700 hover:bg-sky-600 text-gray-200 px-4 py-2 rounded-full text-sm font-semibold transition-colors" data-filter="cpp">C++</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 project-grid">
+                    <!-- Cards are injected here by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800/50 mt-16 relative z-10">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400 flex justify-center items-center">
+            <p>&copy; 2025 Brandon Rodriguez-Hernandez. All rights reserved.</p>
+            <button id="theme-toggle" title="Toggle Theme" class="ml-8 p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </button>
+        </div>
+    </footer>
+
+    <div id="terminal-container" class="font-fira">
+        <div class="terminal-header">
+            <span>brh_terminal</span>
+            <button id="terminal-close-btn" class="text-white">&times;</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+            <div class="terminal-output" id="terminal-output"></div>
+            <div class="terminal-input-line">
+                <span class="terminal-prompt">guest@brh-portfolio:~$</span>
+                <input type="text" id="terminal-input" class="terminal-input" autofocus>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Shared Logic ---
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const bgCanvas = document.getElementById('bg-canvas');
+            const terminalContainer = document.getElementById('terminal-container');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalOutput = document.getElementById('terminal-output');
+            const terminalBody = document.getElementById('terminal-body');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileProjectsButton = document.getElementById('mobile-projects-button');
+            const mobileProjectsMenu = document.getElementById('mobile-projects-menu');
+            const mobileProjectsArrow = document.getElementById('mobile-projects-arrow');
+
+            // --- Theme Management ---
+            function applyTheme(theme) {
+                if (theme === 'retro') {
+                    body.classList.add('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.remove('visible');
+                } else {
+                    body.classList.remove('theme-retro');
+                    if(bgCanvas) bgCanvas.classList.add('visible');
+                }
+            }
+
+            themeToggle.addEventListener('click', () => {
+                const isRetro = body.classList.toggle('theme-retro');
+                const newTheme = isRetro ? 'retro' : 'modern';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'modern';
+            applyTheme(savedTheme);
+
+            // --- Mobile Menu ---
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            if (mobileProjectsButton) {
+                mobileProjectsButton.addEventListener('click', () => {
+                    mobileProjectsMenu.classList.toggle('hidden');
+                    mobileProjectsArrow.classList.toggle('rotate-180');
+                });
+            }
+
+            // --- 3D Background ---
+            if (bgCanvas) {
+                let scene, camera, renderer, stars;
+                function init3DBackground() {
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                    camera.position.z = 1;
+                    camera.rotation.x = Math.PI / 2;
+                    renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    if (!body.classList.contains('theme-retro')) {
+                        bgCanvas.classList.add('visible');
+                    }
+                    const starGeo = new THREE.BufferGeometry();
+                    const starCount = 6000;
+                    const posArray = new Float32Array(starCount * 3);
+                    for (let i = 0; i < starCount * 3; i++) {
+                        posArray[i] = (Math.random() - 0.5) * 5;
+                    }
+                    starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                    const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.005 });
+                    stars = new THREE.Points(starGeo, starMaterial);
+                    scene.add(stars);
+                    window.addEventListener('resize', onWindowResize, false);
+                    animate3D();
+                }
+                function animate3D() {
+                    stars.rotation.z += 0.0002;
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate3D);
+                }
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+                init3DBackground();
+            }
+
+            // --- Projects Page Logic ---
+            const projectsData = [
+                { id: 1, title: 'Real Estate ML Model', desc: 'ML Model assessing property sellability in Oregon.', category: 'ml python', color: 'blue', tags: ['Machine Learning', 'Flask', 'Python'] },
+                { id: 2, title: 'Labor Cost Reduction', desc: 'Data-driven analysis to reduce labor costs by 20%.', category: 'python', color: 'emerald', tags: ['Python', 'Data Analysis', 'Pandas'] },
+                { id: 3, title: 'Robotics Testing Software', desc: 'Proprietary C++ software for robotic arm stress testing.', category: 'cpp', color: 'purple', tags: ['C++', 'Arduino', 'Hardware'] },
+            ];
+
+            function getModernIcon(id) {
+                if (id === 1) return `<path d="M54 26.2656V54H10V26.2656L32 10L54 26.2656Z" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 54V34H22V54" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 44L24 38L32 42L40 36L48 40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+                if (id === 2) return `<path d="M52 24V54H12V10H40L52 24Z" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 10V24H52" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 44V34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 44V30" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 44V38" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+                if (id === 3) return `<path d="M46 18H18C16.8954 18 16 18.8954 16 20V44C16 45.1046 16.8954 46 18 46H46C47.1046 46 48 45.1046 48 44V20C48 18.8954 47.1046 18 46 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 18V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 54V46" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 32H56" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 32H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 26H40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 32H40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 38H40" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+                return '';
+            }
+
+            function getRetroIcon(id) {
+                if (id === 1) return `<path d="M32 10L10 26H14V54H26V38H38V54H50V26H54L32 10Z"/>`;
+                if (id === 2) return `<path d="M24 44H20V34H24V44ZM34 44H30V30H34V44ZM44 44H40V38H44V44ZM52 24V54H12V10H40L52 24Z"/>`;
+                if (id === 3) return `<path d="M18 18H46V22H18V18ZM18 26H22V30H18V26ZM18 34H22V38H18V34ZM18 42H46V46H18V42ZM26 26H42V38H26V26ZM54 30H48V34H54V30ZM16 30H10V34H16V30ZM30 10H34V18H30V10ZM30 46H34V54H30V46Z"/>`;
+                return '';
+            }
+
+            const projectGrid = document.querySelector('.project-grid');
+            if (projectGrid) {
+                projectGrid.innerHTML = projectsData.map(p => `
+                    <div class="project-card-container" data-category="${p.category}">
+                        <a href="project-${p.id}.html" class="project-card page-link block bg-gray-800 rounded-lg shadow-lg">
+                            <div class="h-48 w-full flex items-center justify-center p-8 bg-gray-900/50">
+                                <svg class="modern-icon w-full h-full text-${p.color}-400" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">${getModernIcon(p.id)}</svg>
+                                <svg class="retro-icon w-full h-full text-green-400" viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg">${getRetroIcon(p.id)}</svg>
+                            </div>
+                            <div class="p-6"><h3 class="text-xl font-bold text-white">${p.title}</h3><p class="mt-2 text-gray-400">${p.desc}</p></div>
+                        </a>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.project-filter-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        document.querySelectorAll('.project-filter-btn').forEach(btn => btn.classList.remove('active', 'bg-sky-600') || btn.classList.add('bg-gray-700', 'hover:bg-sky-600'));
+                        button.classList.add('active', 'bg-sky-600');
+                        button.classList.remove('bg-gray-700', 'hover:bg-sky-600');
+                        const filter = button.dataset.filter;
+                        document.querySelectorAll('.project-card-container').forEach(card => {
+                            const categories = card.dataset.category.split(' ');
+                            card.style.display = (filter === 'all' || categories.includes(filter)) ? 'block' : 'none';
+                        });
+                    });
+                });
+                document.querySelectorAll('.project-card-container').forEach(container => {
+                    const card = container.querySelector('.project-card');
+                    container.addEventListener('mousemove', e => {
+                        const rect = container.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const { width, height } = rect;
+                        const rotateX = (y / height - 0.5) * -25;
+                        const rotateY = (x / width - 0.5) * 25;
+                        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+                    });
+                    container.addEventListener('mouseleave', () => {
+                        card.style.transform = 'rotateX(0) rotateY(0) scale(1)';
+                    });
+                });
+            }
+
+            // --- Terminal ---
+            async function runHackSimulation() {
+                const steps = [
+                    { text: 'Pinging 127.0.0.1 with 32 bytes of data...', delay: 500 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Reply from 127.0.0.1: bytes=32 time<1ms TTL=128', delay: 200 },
+                    { text: 'Ping statistics for 127.0.0.1: Packets: Sent = 2, Received = 2, Lost = 0 (0% loss)', delay: 500 },
+                    { text: 'Initiating port scan on localhost...', style: 'text-yellow-400', delay: 1000 },
+                    { text: 'Discovered open port: 443/https', delay: 500 },
+                    { text: 'Discovered open port: 3000/dev-server', delay: 500 },
+                    { text: 'Discovered open port: 8080/http-alt', delay: 500 },
+                    { text: 'Analyzing port 8080...', delay: 1000 },
+                    { text: 'Vulnerability found: CVE-2024-BRH-01 (Unsecured DOM interface)', style: 'text-red-500', delay: 500 },
+                    { text: 'Executing exploit...', delay: 1500 },
+                    { text: 'Bypassing firewall... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Injecting payload... [OK]', style: 'text-green-400', delay: 800 },
+                    { text: 'Gaining root access...', style: 'text-yellow-400', delay: 1200 },
+                    { text: 'Root access granted.', style: 'text-red-500 font-bold', delay: 500 },
+                    { text: 'Downloading user data...', delay: 1000 },
+                    { text: `  > Device: ${navigator.platform}`, delay: 300 },
+                    { text: `  > Browser: ${navigator.userAgent.match(/(firefox|msie|chrome|safari|trident)/i)[0]}`, delay: 300 },
+                    { text: `  > Language: ${navigator.language}`, delay: 300 },
+                    { text: `  > Cookies Enabled: ${navigator.cookieEnabled}`, delay: 300 },
+                    { text: '...', delay: 1000 },
+                    { text: 'Just kidding! This is a simulation.', style: 'text-sky-400', delay: 500 },
+                    { text: 'Your data is safe. Thanks for playing!', style: 'text-sky-400', delay: 500 },
+                ];
+                terminalInput.disabled = true;
+                for (const step of steps) {
+                    await new Promise(resolve => setTimeout(resolve, step.delay));
+                    printToTerminal(step.text, `response ${step.style || ''}`);
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+                terminalInput.disabled = false;
+                terminalInput.focus();
+            }
+            const commands = {
+                help: `Available commands:\n  help      - Show this message\n  about     - Display a short bio\n  projects  - List my main projects\n  contact   - Show contact information\n  skills    - List my technical skills\n  hack_me   - Run a simulation\n  clear     - Clear the terminal\n  exit      - Close the terminal`,
+                about: "I'm an experienced data engineer from Salem, OR, who understands the scarcity of time. I'm passionate about architecting and implementing data-centric systems that yield substantial improvements in efficiency and cost-effectiveness.",
+                projects: `1. Real Estate ML Model\n2. Labor Cost Reduction Analysis\n3. Robotics Testing Software`,
+                contact: `Email: bertcr7101@gmail.com\nPhone: 971-283-4050\nGitHub: https://github.com/brandon-r-h`,
+                skills: `Python, SQL, Data Pipelines, Machine Learning, Cloud Computing, React JS, Flask, Git, C++, R, API Architecture, Web Dev, Debugging, Statistical Modeling`,
+                hack_me: runHackSimulation,
+            };
+            function toggleTerminal(visible) {
+                terminalContainer.classList.toggle('visible', visible);
+                if (visible) terminalInput.focus();
+            }
+            document.addEventListener('keydown', e => {
+                if (e.ctrlKey && e.key === 't') { e.preventDefault(); toggleTerminal(true); }
+                if (e.key === 'Escape' && terminalContainer.classList.contains('visible')) { toggleTerminal(false); }
+            });
+            document.getElementById('terminal-close-btn').addEventListener('click', () => toggleTerminal(false));
+            terminalInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !terminalInput.disabled) {
+                    const command = terminalInput.value.trim().toLowerCase();
+                    printToTerminal(`guest@brh-portfolio:~$ ${command}`, 'command');
+                    if (command === 'clear') { terminalOutput.innerHTML = ''; }
+                    else if (command === 'exit') { toggleTerminal(false); }
+                    else if (commands[command]) {
+                        if (typeof commands[command] === 'function') commands[command]();
+                        else printToTerminal(commands[command], 'response');
+                    }
+                    else { printToTerminal(`Command not found: ${command}. Type 'help'.`, 'response'); }
+                    terminalInput.value = '';
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+                }
+            });
+            function printToTerminal(text, className) { terminalOutput.innerHTML += `<div class="response ${className}">${text}</div>`; }
+            printToTerminal("Welcome! Type 'help' to get started.", 'response');
+        });
+    </script>
+</body>
+</html>
