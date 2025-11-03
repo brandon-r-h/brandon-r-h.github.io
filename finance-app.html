@@ -36,11 +36,14 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
+            position: relative;
         }
         
         #root {
             min-height: 100vh;
             width: 100%;
+            position: relative;
+            overflow: visible;
         }
         
         /* Mobile touch improvements */
@@ -387,7 +390,7 @@
             ];
 
             return (
-                <div className="space-y-6">
+                <div className="space-y-6" style={{width: '100%', display: 'block', visibility: 'visible'}}>
                     <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                         <div>
                             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
@@ -3424,7 +3427,7 @@
                     )}
 
                     {/* Layout Container */}
-                    <div className="flex flex-col lg:flex-row min-h-screen">
+                    <div className="min-h-screen lg:flex lg:flex-row" style={{overflow: 'visible'}}>
                         {/* Sidebar */}
                         <div className={`
                             w-72 glass border-r border-gray-700/50 flex flex-col
@@ -3495,11 +3498,11 @@
                         </div>
 
                         {/* Main Content */}
-                        <div className="flex-1 w-full overflow-y-auto" style={{backgroundColor: 'transparent'}}>
-                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full max-w-full" style={{minHeight: '100vh'}}>
+                        <div className="w-full lg:flex-1" style={{minHeight: '100vh', display: 'block', position: 'relative', zIndex: 1}}>
+                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full" style={{minHeight: '100vh', position: 'relative'}}>
                             {/* Debug indicator - Remove this later */}
                             <div className="lg:hidden text-white text-xs fixed top-16 right-4 bg-red-500 px-2 py-1 rounded z-50">
-                                Page: {currentPage}
+                                Page: {currentPage} | Debts: {debts.length}
                             </div>
                             {currentPage === 'dashboard' && (
                                 <Dashboard
