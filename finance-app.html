@@ -29,11 +29,17 @@
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0a1810 0%, #0f2419 50%, #0a1810 100%);
+            background-attachment: fixed;
             color: #F9FAFB;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
+        }
+        
+        #root {
+            min-height: 100vh;
+            width: 100%;
         }
         
         /* Mobile touch improvements */
@@ -51,6 +57,17 @@
             /* Prevent zoom on input focus */
             input, select, textarea {
                 font-size: 16px;
+            }
+            
+            /* Fix mobile viewport height issues */
+            .h-screen {
+                height: 100vh;
+                height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            }
+            
+            .min-h-screen {
+                min-height: 100vh;
+                min-height: 100dvh;
             }
         }
         
@@ -3387,7 +3404,7 @@
             ];
 
             return (
-                <div className="flex h-screen overflow-hidden">
+                <div className="lg:flex h-screen overflow-hidden">
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -3412,7 +3429,7 @@
 
                     {/* Sidebar */}
                     <div className={`
-                        w-72 glass border-r border-gray-700/50 flex flex-col
+                        w-72 glass border-r border-gray-700/50 flex flex-col h-screen
                         fixed lg:relative inset-y-0 left-0 z-40
                         transform transition-transform duration-300 ease-in-out
                         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -3480,8 +3497,8 @@
                     </div>
 
                     {/* Main Content */}
-                    <div className="flex-1 overflow-auto scrollbar-hide w-full">
-                        <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8">
+                    <div className="min-h-screen lg:flex-1 overflow-auto scrollbar-hide w-full">
+                        <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 min-h-full">
                             {currentPage === 'dashboard' && (
                                 <Dashboard
                                     debts={debts}
