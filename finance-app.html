@@ -63,10 +63,29 @@
                 font-size: 16px;
             }
             
-            /* Fix mobile layout */
+            /* Fix mobile layout - CRITICAL */
             body, html, #root {
-                width: 100%;
-                overflow-x: hidden;
+                width: 100% !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                min-height: 100vh !important;
+            }
+            
+            /* Ensure content is always visible */
+            #root > div {
+                display: block !important;
+                width: 100% !important;
+                min-height: 100vh !important;
+                position: relative !important;
+            }
+            
+            /* Main content area - mobile specific */
+            #root > div > div:last-child {
+                display: block !important;
+                width: 100% !important;
+                min-height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
         }
         
@@ -3403,11 +3422,12 @@
             ];
 
             return (
-                <>
+                <div className="min-h-screen lg:flex lg:flex-row" style={{width: '100%', position: 'relative'}}>
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl shadow-lg"
+                        style={{zIndex: 9999}}
                     >
                         <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {mobileMenuOpen ? (
@@ -3423,18 +3443,20 @@
                         <div 
                             className="lg:hidden fixed inset-0 bg-black/50 z-30"
                             onClick={() => setMobileMenuOpen(false)}
+                            style={{zIndex: 40}}
                         ></div>
                     )}
 
-                    {/* Layout Container */}
-                    <div className="min-h-screen lg:flex lg:flex-row" style={{overflow: 'visible'}}>
-                        {/* Sidebar */}
-                        <div className={`
+                    {/* Sidebar - Fixed on mobile, relative on desktop */}
+                    <div 
+                        className={`
                             w-72 glass border-r border-gray-700/50 flex flex-col
-                            fixed lg:relative inset-y-0 left-0 z-40 h-screen
+                            fixed lg:static inset-y-0 left-0 z-40 h-screen
                             transition-transform duration-300 ease-in-out
                             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                        `}>
+                        `}
+                        style={{zIndex: 45}}
+                    >
                         <div className="p-6 border-b border-gray-700/50">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl">
@@ -3497,13 +3519,34 @@
                         </div>
                         </div>
 
-                        {/* Main Content */}
-                        <div className="w-full lg:flex-1" style={{minHeight: '100vh', display: 'block', position: 'relative', zIndex: 1}}>
-                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full" style={{minHeight: '100vh', position: 'relative'}}>
-                            {/* Debug indicator - Remove this later */}
-                            <div className="lg:hidden text-white text-xs fixed top-16 right-4 bg-red-500 px-2 py-1 rounded z-50">
-                                Page: {currentPage} | Debts: {debts.length}
-                            </div>
+                    {/* Main Content - Always visible on mobile */}
+                    <div 
+                        className="w-full lg:flex-1" 
+                        style={{
+                            minHeight: '100vh', 
+                            width: '100%', 
+                            display: 'block', 
+                            position: 'relative', 
+                            zIndex: 10,
+                            paddingTop: '80px',
+                            paddingBottom: '20px',
+                            backgroundColor: 'transparent'
+                        }}
+                    >
+                        <div 
+                            className="p-4 md:p-6 lg:p-8 lg:pt-8 w-full" 
+                            style={{
+                                minHeight: 'calc(100vh - 100px)', 
+                                width: '100%',
+                                display: 'block',
+                                visibility: 'visible',
+                                opacity: 1
+                            }}
+                        >
+                        {/* Debug indicator - Remove this later */}
+                        <div className="lg:hidden text-white text-xs fixed top-16 right-4 bg-red-500 px-2 py-1 rounded z-50">
+                            Page: {currentPage} | Debts: {debts.length}
+                        </div>
                             {currentPage === 'dashboard' && (
                                 <Dashboard
                                     debts={debts}
@@ -3610,10 +3653,9 @@
                                     currentUser={user}
                                 />
                             )}
-                            </div>
                         </div>
                     </div>
-                </>
+                </div>
             );
         };
 
