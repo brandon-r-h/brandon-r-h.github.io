@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Finance Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -63,16 +64,6 @@
             body, html, #root {
                 width: 100%;
                 overflow-x: hidden;
-            }
-            
-            /* Ensure content is visible on mobile */
-            .lg\\:flex {
-                display: block !important;
-            }
-            
-            .lg\\:h-screen {
-                height: auto !important;
-                min-height: 100vh;
             }
         }
         
@@ -3409,7 +3400,7 @@
             ];
 
             return (
-                <div className="relative min-h-screen">
+                <>
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -3432,12 +3423,13 @@
                         ></div>
                     )}
 
-                    <div className="lg:flex lg:h-screen">
+                    {/* Layout Container */}
+                    <div className="flex flex-col lg:flex-row min-h-screen">
                         {/* Sidebar */}
                         <div className={`
                             w-72 glass border-r border-gray-700/50 flex flex-col
-                            fixed lg:static inset-y-0 left-0 z-40 h-screen
-                            transform transition-transform duration-300 ease-in-out lg:transform-none
+                            fixed lg:relative inset-y-0 left-0 z-40 h-screen
+                            transition-transform duration-300 ease-in-out
                             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                         `}>
                         <div className="p-6 border-b border-gray-700/50">
@@ -3503,8 +3495,12 @@
                         </div>
 
                         {/* Main Content */}
-                        <div className="w-full lg:flex-1 lg:overflow-auto scrollbar-hide min-h-screen">
-                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full">
+                        <div className="flex-1 w-full overflow-y-auto" style={{backgroundColor: 'transparent'}}>
+                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full max-w-full" style={{minHeight: '100vh'}}>
+                            {/* Debug indicator - Remove this later */}
+                            <div className="lg:hidden text-white text-xs fixed top-16 right-4 bg-red-500 px-2 py-1 rounded z-50">
+                                Page: {currentPage}
+                            </div>
                             {currentPage === 'dashboard' && (
                                 <Dashboard
                                     debts={debts}
@@ -3614,7 +3610,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </>
             );
         };
 
