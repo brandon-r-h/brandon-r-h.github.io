@@ -59,15 +59,20 @@
                 font-size: 16px;
             }
             
-            /* Fix mobile viewport height issues */
-            .h-screen {
-                height: 100vh;
-                height: 100dvh; /* Dynamic viewport height for mobile browsers */
+            /* Fix mobile layout */
+            body, html, #root {
+                width: 100%;
+                overflow-x: hidden;
             }
             
-            .min-h-screen {
+            /* Ensure content is visible on mobile */
+            .lg\\:flex {
+                display: block !important;
+            }
+            
+            .lg\\:h-screen {
+                height: auto !important;
                 min-height: 100vh;
-                min-height: 100dvh;
             }
         }
         
@@ -3404,7 +3409,7 @@
             ];
 
             return (
-                <div className="lg:flex h-screen overflow-hidden">
+                <div className="relative min-h-screen">
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -3427,13 +3432,14 @@
                         ></div>
                     )}
 
-                    {/* Sidebar */}
-                    <div className={`
-                        w-72 glass border-r border-gray-700/50 flex flex-col h-screen
-                        fixed lg:relative inset-y-0 left-0 z-40
-                        transform transition-transform duration-300 ease-in-out
-                        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                    `}>
+                    <div className="lg:flex lg:h-screen">
+                        {/* Sidebar */}
+                        <div className={`
+                            w-72 glass border-r border-gray-700/50 flex flex-col
+                            fixed lg:static inset-y-0 left-0 z-40 h-screen
+                            transform transition-transform duration-300 ease-in-out lg:transform-none
+                            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                        `}>
                         <div className="p-6 border-b border-gray-700/50">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl">
@@ -3494,11 +3500,11 @@
                                 <span>Logout</span>
                             </button>
                         </div>
-                    </div>
+                        </div>
 
-                    {/* Main Content */}
-                    <div className="min-h-screen lg:flex-1 overflow-auto scrollbar-hide w-full">
-                        <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 min-h-full">
+                        {/* Main Content */}
+                        <div className="w-full lg:flex-1 lg:overflow-auto scrollbar-hide min-h-screen">
+                            <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 w-full">
                             {currentPage === 'dashboard' && (
                                 <Dashboard
                                     debts={debts}
@@ -3605,6 +3611,7 @@
                                     currentUser={user}
                                 />
                             )}
+                            </div>
                         </div>
                     </div>
                 </div>
