@@ -298,7 +298,32 @@
         };
 
         const formatDate = (date) => {
+            // Parse date as local time, not UTC
+            // "2025-11-04" should be Nov 4 in LOCAL timezone, not UTC
+            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = date.split('-').map(Number);
+                const localDate = new Date(year, month - 1, day);
+                return localDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+            // Fallback for other date formats
             return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+        
+        // Helper to get today's date in YYYY-MM-DD format (local timezone, NOT UTC)
+        const getTodayLocal = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        // Helper to get current month in YYYY-MM format (local timezone)
+        const getCurrentMonthLocal = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
         };
 
         // ============ AUTH COMPONENT ============
@@ -405,7 +430,7 @@
             const totalBills = bills.reduce((sum, b) => sum + b.amount, 0);
             const totalSavings = savings.reduce((sum, s) => sum + s.balance, 0);
             const netMonthly = totalIncome - totalBills;
-            const currentMonth = new Date().toISOString().slice(0, 7);
+            const currentMonth = getCurrentMonthLocal();
             const monthlySpending = spending.filter(s => s.monthYear === currentMonth)
                 .reduce((sum, s) => sum + s.amount, 0);
 
@@ -1697,7 +1722,7 @@
             const [newOption, setNewOption] = useState('');
             const [editingOption, setEditingOption] = useState(null);
             const [editText, setEditText] = useState('');
-            const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+            const [currentDate, setCurrentDate] = useState(getTodayLocal());
             
             // Use the state-tracked current date
             const today = currentDate;
@@ -1707,7 +1732,7 @@
             // Check for day change and reload votes every 3 seconds
             useEffect(() => {
                 const checkDateChange = async () => {
-                    const newDate = new Date().toISOString().split('T')[0];
+                    const newDate = getTodayLocal();
                     if (newDate !== currentDate) {
                         console.log('🔄 Date changed from', currentDate, 'to', newDate);
                         console.log('📥 Reloading votes from Firebase...');
@@ -2143,10 +2168,10 @@
 
         // ============ TRANSACTIONS & BUDGET COMPONENT ============
         const TransactionsBudget = ({ transactions, setTransactions, budgets, setBudgets }) => {
-            const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+            const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthLocal());
             const [showTransactionForm, setShowTransactionForm] = useState(false);
             const [showBudgetForm, setShowBudgetForm] = useState(false);
-            const [newTransaction, setNewTransaction] = useState({ description: '', amount: '', category: '', date: '' });
+            const [newTransaction, setNewTransaction] = useState({ description: '', amount: '', category: '', date: getTodayLocal() });
             const [editingId, setEditingId] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
             const [filterCategory, setFilterCategory] = useState('all');
@@ -2344,7 +2369,7 @@
                             onClick={() => {
                                 setShowTransactionForm(!showTransactionForm);
                                 setEditingId(null);
-                                setNewTransaction({ description: '', amount: '', category: '', date: new Date().toISOString().split('T')[0] });
+                                setNewTransaction({ description: '', amount: '', category: '', date: getTodayLocal() });
                             }}
                             className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 rounded-xl font-semibold shadow-lg"
                         >
@@ -2452,7 +2477,7 @@
 
         // ============ BILL PAYMENT TRACKER ============
         const BillPaymentTracker = ({ bills, billPayments, setBillPayments }) => {
-            const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+            const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthLocal());
 
             const togglePayment = async (billId, isPaid) => {
                 const monthYear = selectedMonth;
@@ -2689,7 +2714,7 @@
 
             const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
             const totalBills = bills.reduce((sum, b) => sum + b.amount, 0);
-            const monthTransactions = transactions.filter(t => t.monthYear === new Date().toISOString().slice(0, 7));
+            const monthTransactions = transactions.filter(t => t.monthYear === getCurrentMonthLocal());
             const totalSpent = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
 
             return (
@@ -2747,7 +2772,7 @@
 
             const saveSnapshot = async () => {
                 const snapshot = {
-                    date: new Date().toISOString().split('T')[0],
+                    date: getTodayLocal(),
                     amount: netWorth,
                     savings: totalSavings,
                     debts: totalDebt
@@ -3463,7 +3488,7 @@
                     if (Notification.permission !== 'granted') return;
 
                     const today = new Date().getDate();
-                    const currentMonth = new Date().toISOString().slice(0, 7);
+                    const currentMonth = getCurrentMonthLocal();
 
                     // Check for upcoming bills (3 days or less)
                     const paidBills = billPayments.filter(p => p.monthYear === currentMonth && p.isPaid).map(p => p.billId);
