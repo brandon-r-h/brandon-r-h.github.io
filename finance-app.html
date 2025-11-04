@@ -3503,12 +3503,32 @@
             if (loading) {
                 console.log('🔄 Showing loading screen');
                 return (
-                    <div className="min-h-screen flex items-center justify-center bg-gray-900" style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ 
+                        minHeight: '100vh',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#1a1a1a',
+                        position: 'relative',
+                        zIndex: 1
+                    }}>
                         {testDiv}
-                        <div className="text-center">
-                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-4"></div>
-                            <div className="text-2xl text-emerald-400 font-semibold">Loading Finance Tracker...</div>
-                            <div className="text-sm text-gray-400 mt-2">Please wait</div>
+                        <div style={{
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'purple',
+                            color: 'white',
+                            padding: '40px',
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            zIndex: 99999,
+                            borderRadius: '20px',
+                            textAlign: 'center'
+                        }}>
+                            ⏳ LOADING STATE<br/>
+                            <span style={{ fontSize: '16px' }}>Waiting for Firebase...</span>
                         </div>
                     </div>
                 );
@@ -3517,10 +3537,27 @@
             if (!user) {
                 console.log('🔓 Showing login screen');
                 return (
-                    <>
+                    <div style={{ minHeight: '100vh', position: 'relative' }}>
                         {testDiv}
+                        <div style={{
+                            position: 'fixed',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'blue',
+                            color: 'white',
+                            padding: '40px',
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            zIndex: 99999,
+                            borderRadius: '20px',
+                            textAlign: 'center'
+                        }}>
+                            🔓 LOGIN SCREEN<br/>
+                            <span style={{ fontSize: '16px' }}>No user logged in</span>
+                        </div>
                         <Login onLogin={() => setLoading(false)} />
-                    </>
+                    </div>
                 );
             }
             
