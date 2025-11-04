@@ -3276,10 +3276,45 @@
             const [loading, setLoading] = useState(true);
             const [currentPage, setCurrentPage] = useState('dashboard');
             const [loadError, setLoadError] = useState(null);
+            const [renderError, setRenderError] = useState(null);
             // Sidebar starts open on desktop (>1024px), closed on mobile
             const [mobileMenuOpen, setMobileMenuOpen] = useState(window.innerWidth >= 1024);
             
             console.log('📊 App state:', { user: !!user, loading, currentPage, mobileMenuOpen });
+            
+            // Catch any render errors
+            if (renderError) {
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'darkred',
+                        color: 'white',
+                        padding: '40px',
+                        fontSize: '20px',
+                        zIndex: 9999999,
+                        overflow: 'auto'
+                    }}>
+                        <h1 style={{ fontSize: '32px', marginBottom: '20px' }}>❌ RENDER ERROR</h1>
+                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{renderError}</pre>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            style={{
+                                marginTop: '20px',
+                                padding: '15px 30px',
+                                background: 'white',
+                                color: 'black',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '18px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            RELOAD PAGE
+                        </button>
+                    </div>
+                );
+            }
             
             // Debug logging for mobile
             useEffect(() => {
@@ -3294,8 +3329,11 @@
                 });
             }, [mobileMenuOpen, currentPage]);
             
-            // Handle window resize to adjust sidebar state
+            // Handle window resize to adjust sidebar state - DISABLED FOR DEBUG
             useEffect(() => {
+                console.log('📐 Resize listener setup (currently disabled for debug)');
+                // TEMPORARILY DISABLED - this might be causing re-renders
+                /*
                 const handleResize = () => {
                     const isDesktop = window.innerWidth >= 1024;
                     console.log('📐 Window resized:', window.innerWidth, 'Desktop:', isDesktop);
@@ -3309,7 +3347,8 @@
                 
                 window.addEventListener('resize', handleResize);
                 return () => window.removeEventListener('resize', handleResize);
-            }, [mobileMenuOpen]);
+                */
+            }, []);
             
             // Data states
             const [debts, setDebts] = useState([]);
@@ -3328,11 +3367,21 @@
             const [netWorthHistory, setNetWorthHistory] = useState([]);
 
             useEffect(() => {
+                let mounted = true;
+                console.log('🔧 Setting up auth listener...');
+                
                 const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                    if (!mounted) {
+                        console.log('⚠️ Component unmounted, skipping auth update');
+                        return;
+                    }
+                    
                     console.log('🔐 Auth state changed:', user ? 'Logged in' : 'Logged out');
-                    setUser(user);
-                    if (user) {
-                        try {
+                    
+                    try {
+                        setUser(user);
+                        
+                        if (user) {
                             console.log('📡 Loading data from Firebase...');
                             
                             // Add timeout wrapper for mobile networks
@@ -3363,6 +3412,8 @@
                                 billPaymentsSnap, weddingSnap, notesSnap, netWorthSnap
                             ] = await Promise.race([dataPromise, timeoutPromise]);
 
+                            if (!mounted) return;
+
                             setDebts(debtsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                             setIncome(incomeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                             setBills(billsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -3380,21 +3431,32 @@
                             
                             console.log('✅ Data loaded successfully');
                             setLoadError(null);
-                        } catch (error) {
-                            console.error('❌ Firebase loading error:', error);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error in auth handler:', error);
+                        if (mounted) {
                             setLoadError(error.message);
-                            // Continue with empty data rather than blocking
+                        }
+                    } finally {
+                        if (mounted) {
+                            setLoading(false);
+                            console.log('✅ App ready');
                         }
                     }
-                    setLoading(false);
-                    console.log('✅ App ready');
                 });
 
-                return unsubscribe;
+                return () => {
+                    console.log('🧹 Cleaning up auth listener');
+                    mounted = false;
+                    unsubscribe();
+                };
             }, []);
 
-            // Notifications System
+            // Notifications System - DISABLED FOR DEBUG
             useEffect(() => {
+                console.log('🔔 Notifications system (currently disabled for debug)');
+                return; // TEMPORARILY DISABLED
+                
                 if (!user || bills.length === 0) return;
 
                 // Request notification permission
@@ -3585,6 +3647,9 @@
             }
             
             console.log('✅ Showing main app');
+            
+            // Wrap everything in try-catch
+            try {
 
             const getNavIcon = (id) => {
                 const icons = {
@@ -3935,6 +4000,46 @@
                     </div>
                 </div>
             );
+            
+            } catch (error) {
+                console.error('❌ Caught rendering error:', error);
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'darkred',
+                        color: 'white',
+                        padding: '40px',
+                        fontSize: '20px',
+                        zIndex: 9999999,
+                        overflow: 'auto'
+                    }}>
+                        <h1 style={{ fontSize: '32px', marginBottom: '20px' }}>❌ CAUGHT ERROR IN RENDER</h1>
+                        <div style={{ marginBottom: '20px' }}>
+                            <strong>Error:</strong> {error.message || String(error)}
+                        </div>
+                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px' }}>
+                            {error.stack || 'No stack trace available'}
+                        </pre>
+                        <button 
+                            onClick={() => window.location.reload()}
+                            style={{
+                                marginTop: '20px',
+                                padding: '15px 30px',
+                                background: 'white',
+                                color: 'black',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            RELOAD PAGE
+                        </button>
+                    </div>
+                );
+            }
         };
 
         // ============ RENDER APP ============
