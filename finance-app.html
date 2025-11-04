@@ -69,10 +69,30 @@
                 font-size: 16px;
             }
             
-            /* Ensure content is visible on mobile */
+            /* Ensure content is visible and scrollable on mobile */
             body, html {
                 overflow-x: hidden;
+                overflow-y: auto !important;
                 width: 100%;
+                height: 100%;
+                position: relative;
+            }
+            
+            #root {
+                overflow-y: auto !important;
+                height: auto !important;
+                min-height: 100vh;
+            }
+            
+            /* Force main content to be visible and scrollable */
+            .mobile-main-content {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                overflow-y: auto !important;
+                min-height: 100vh !important;
+                position: relative !important;
+                z-index: 1 !important;
             }
         }
         
@@ -293,9 +313,12 @@
                 setLoading(true);
                 setError('');
                 try {
+                    console.log('🔐 Attempting login...');
                     await auth.signInWithEmailAndPassword(email, password);
+                    console.log('✅ Login successful');
                     onLogin();
                 } catch (err) {
+                    console.error('❌ Login error:', err);
                     setError(err.message);
                 }
                 setLoading(false);
@@ -2543,86 +2566,125 @@
         // ============ ANALYTICS & CHARTS ============
         const Analytics = ({ debts, transactions, income, bills, savings, netWorthHistory }) => {
             useEffect(() => {
-                // Debt Progress Chart
-                const debtCtx = document.getElementById('debtChart');
-                if (debtCtx && debts.length > 0) {
-                    new Chart(debtCtx, {
-                        type: 'line',
-                        data: {
-                            labels: debts.map(d => d.name),
-                            datasets: [{
-                                label: 'Current Balance',
-                                data: debts.map(d => d.balance),
-                                borderColor: 'rgb(239, 68, 68)',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: '#F9FAFB' } } },
-                            scales: {
-                                y: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } },
-                                x: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } }
+                let debtChart, categoryChart, netWorthChart;
+                
+                try {
+                    console.log('📊 Rendering Analytics charts...');
+                    
+                    // Check if Chart.js is loaded
+                    if (typeof Chart === 'undefined') {
+                        console.error('❌ Chart.js not loaded');
+                        return;
+                    }
+                    
+                    // Debt Progress Chart
+                    const debtCtx = document.getElementById('debtChart');
+                    if (debtCtx && debts.length > 0) {
+                        // Destroy existing chart
+                        const existingDebtChart = Chart.getChart(debtCtx);
+                        if (existingDebtChart) existingDebtChart.destroy();
+                        
+                        debtChart = new Chart(debtCtx, {
+                            type: 'line',
+                            data: {
+                                labels: debts.map(d => d.name),
+                                datasets: [{
+                                    label: 'Current Balance',
+                                    data: debts.map(d => d.balance),
+                                    borderColor: 'rgb(239, 68, 68)',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: { legend: { labels: { color: '#F9FAFB' } } },
+                                scales: {
+                                    y: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } },
+                                    x: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } }
+                                }
                             }
-                        }
-                    });
-                }
+                        });
+                        console.log('✅ Debt chart rendered');
+                    }
 
-                // Spending by Category Chart
-                const categoryCtx = document.getElementById('categoryChart');
-                if (categoryCtx && transactions.length > 0) {
-                    const categoryData = transactions.reduce((acc, t) => {
-                        acc[t.category] = (acc[t.category] || 0) + t.amount;
-                        return acc;
-                    }, {});
+                    // Spending by Category Chart
+                    const categoryCtx = document.getElementById('categoryChart');
+                    if (categoryCtx && transactions.length > 0) {
+                        // Destroy existing chart
+                        const existingCategoryChart = Chart.getChart(categoryCtx);
+                        if (existingCategoryChart) existingCategoryChart.destroy();
+                        
+                        const categoryData = transactions.reduce((acc, t) => {
+                            acc[t.category] = (acc[t.category] || 0) + t.amount;
+                            return acc;
+                        }, {});
 
-                    new Chart(categoryCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(categoryData),
-                            datasets: [{
-                                data: Object.values(categoryData),
-                                backgroundColor: [
-                                    'rgb(16, 185, 129)', 'rgb(59, 130, 246)', 'rgb(249, 115, 22)',
-                                    'rgb(236, 72, 153)', 'rgb(139, 92, 246)', 'rgb(34, 197, 94)',
-                                    'rgb(251, 146, 60)', 'rgb(168, 85, 247)', 'rgb(14, 165, 233)', 'rgb(132, 204, 22)'
-                                ]
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: '#F9FAFB' } } }
-                        }
-                    });
-                }
-
-                // Net Worth Trend
-                const netWorthCtx = document.getElementById('netWorthChart');
-                if (netWorthCtx && netWorthHistory.length > 0) {
-                    new Chart(netWorthCtx, {
-                        type: 'line',
-                        data: {
-                            labels: netWorthHistory.map(h => h.date),
-                            datasets: [{
-                                label: 'Net Worth',
-                                data: netWorthHistory.map(h => h.amount),
-                                borderColor: 'rgb(16, 185, 129)',
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                fill: true,
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: '#F9FAFB' } } },
-                            scales: {
-                                y: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } },
-                                x: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } }
+                        categoryChart = new Chart(categoryCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(categoryData),
+                                datasets: [{
+                                    data: Object.values(categoryData),
+                                    backgroundColor: [
+                                        'rgb(16, 185, 129)', 'rgb(59, 130, 246)', 'rgb(249, 115, 22)',
+                                        'rgb(236, 72, 153)', 'rgb(139, 92, 246)', 'rgb(34, 197, 94)',
+                                        'rgb(251, 146, 60)', 'rgb(168, 85, 247)', 'rgb(14, 165, 233)', 'rgb(132, 204, 22)'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: { legend: { labels: { color: '#F9FAFB' } } }
                             }
-                        }
-                    });
+                        });
+                        console.log('✅ Category chart rendered');
+                    }
+
+                    // Net Worth Trend
+                    const netWorthCtx = document.getElementById('netWorthChart');
+                    if (netWorthCtx && netWorthHistory.length > 0) {
+                        // Destroy existing chart
+                        const existingNetWorthChart = Chart.getChart(netWorthCtx);
+                        if (existingNetWorthChart) existingNetWorthChart.destroy();
+                        
+                        netWorthChart = new Chart(netWorthCtx, {
+                            type: 'line',
+                            data: {
+                                labels: netWorthHistory.map(h => h.date),
+                                datasets: [{
+                                    label: 'Net Worth',
+                                    data: netWorthHistory.map(h => h.amount),
+                                    borderColor: 'rgb(16, 185, 129)',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: { legend: { labels: { color: '#F9FAFB' } } },
+                                scales: {
+                                    y: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } },
+                                    x: { ticks: { color: '#F9FAFB' }, grid: { color: 'rgba(249, 250, 251, 0.1)' } }
+                                }
+                            }
+                        });
+                        console.log('✅ Net worth chart rendered');
+                    }
+                } catch (error) {
+                    console.error('❌ Chart rendering error:', error);
                 }
+                
+                // Cleanup function
+                return () => {
+                    if (debtChart) debtChart.destroy();
+                    if (categoryChart) categoryChart.destroy();
+                    if (netWorthChart) netWorthChart.destroy();
+                };
             }, [debts, transactions, netWorthHistory]);
 
             const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
@@ -3206,8 +3268,39 @@
             const [user, setUser] = useState(null);
             const [loading, setLoading] = useState(true);
             const [currentPage, setCurrentPage] = useState('dashboard');
+            const [loadError, setLoadError] = useState(null);
             // Sidebar starts open on desktop (>1024px), closed on mobile
             const [mobileMenuOpen, setMobileMenuOpen] = useState(window.innerWidth >= 1024);
+            
+            // Debug logging for mobile
+            useEffect(() => {
+                console.log('🔍 Mobile Debug Info:', {
+                    screenWidth: window.innerWidth,
+                    screenHeight: window.innerHeight,
+                    userAgent: navigator.userAgent,
+                    isChrome: /Chrome/.test(navigator.userAgent),
+                    isMobile: window.innerWidth < 1024,
+                    mobileMenuOpen,
+                    currentPage
+                });
+            }, [mobileMenuOpen, currentPage]);
+            
+            // Handle window resize to adjust sidebar state
+            useEffect(() => {
+                const handleResize = () => {
+                    const isDesktop = window.innerWidth >= 1024;
+                    console.log('📐 Window resized:', window.innerWidth, 'Desktop:', isDesktop);
+                    // Auto-open sidebar on desktop, auto-close on mobile
+                    if (isDesktop && !mobileMenuOpen) {
+                        setMobileMenuOpen(true);
+                    } else if (!isDesktop && mobileMenuOpen) {
+                        setMobileMenuOpen(false);
+                    }
+                };
+                
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, [mobileMenuOpen]);
             
             // Data states
             const [debts, setDebts] = useState([]);
@@ -3227,46 +3320,65 @@
 
             useEffect(() => {
                 const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                    console.log('🔐 Auth state changed:', user ? 'Logged in' : 'Logged out');
                     setUser(user);
                     if (user) {
-                        // Load all data from Firestore
-                        const [
-                            debtsSnap, incomeSnap, billsSnap, goalsSnap, savingsSnap,
-                            foodSnap, workoutSnap, transactionsSnap, budgetsSnap, extraSnap,
-                            billPaymentsSnap, weddingSnap, notesSnap, netWorthSnap
-                        ] = await Promise.all([
-                            db.collection('debts').get(),
-                            db.collection('income').get(),
-                            db.collection('bills').get(),
-                            db.collection('goals').get(),
-                            db.collection('savings').get(),
-                            db.collection('foodVotes').get(),
-                            db.collection('workoutVotes').get(),
-                            db.collection('transactions').get(),
-                            db.collection('budgets').get(),
-                            db.collection('extraPayments').get(),
-                            db.collection('billPayments').get(),
-                            db.collection('weddingExpenses').get(),
-                            db.collection('notes').get(),
-                            db.collection('netWorthHistory').get()
-                        ]);
+                        try {
+                            console.log('📡 Loading data from Firebase...');
+                            
+                            // Add timeout wrapper for mobile networks
+                            const timeoutPromise = new Promise((_, reject) => 
+                                setTimeout(() => reject(new Error('Firebase timeout - slow network')), 15000)
+                            );
+                            
+                            const dataPromise = Promise.all([
+                                db.collection('debts').get(),
+                                db.collection('income').get(),
+                                db.collection('bills').get(),
+                                db.collection('goals').get(),
+                                db.collection('savings').get(),
+                                db.collection('foodVotes').get(),
+                                db.collection('workoutVotes').get(),
+                                db.collection('transactions').get(),
+                                db.collection('budgets').get(),
+                                db.collection('extraPayments').get(),
+                                db.collection('billPayments').get(),
+                                db.collection('weddingExpenses').get(),
+                                db.collection('notes').get(),
+                                db.collection('netWorthHistory').get()
+                            ]);
+                            
+                            const [
+                                debtsSnap, incomeSnap, billsSnap, goalsSnap, savingsSnap,
+                                foodSnap, workoutSnap, transactionsSnap, budgetsSnap, extraSnap,
+                                billPaymentsSnap, weddingSnap, notesSnap, netWorthSnap
+                            ] = await Promise.race([dataPromise, timeoutPromise]);
 
-                        setDebts(debtsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setIncome(incomeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setBills(billsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setGoals(goalsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setSavings(savingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setFoodVotes(foodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setWorkoutVotes(workoutSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setTransactions(transactionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setBudgets(budgetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setExtraPayments(extraSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setBillPayments(billPaymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setWeddingExpenses(weddingSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setNotes(notesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                        setNetWorthHistory(netWorthSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setDebts(debtsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setIncome(incomeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setBills(billsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setGoals(goalsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setSavings(savingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setFoodVotes(foodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setWorkoutVotes(workoutSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setTransactions(transactionsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setBudgets(budgetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setExtraPayments(extraSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setBillPayments(billPaymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setWeddingExpenses(weddingSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setNotes(notesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            setNetWorthHistory(netWorthSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                            
+                            console.log('✅ Data loaded successfully');
+                            setLoadError(null);
+                        } catch (error) {
+                            console.error('❌ Firebase loading error:', error);
+                            setLoadError(error.message);
+                            // Continue with empty data rather than blocking
+                        }
                     }
                     setLoading(false);
+                    console.log('✅ App ready');
                 });
 
                 return unsubscribe;
@@ -3363,7 +3475,11 @@
             if (loading) {
                 return (
                     <div className="min-h-screen flex items-center justify-center bg-gray-900">
-                        <div className="text-2xl text-blue-400">Loading...</div>
+                        <div className="text-center">
+                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-4"></div>
+                            <div className="text-2xl text-emerald-400 font-semibold">Loading Finance Tracker...</div>
+                            <div className="text-sm text-gray-400 mt-2">Please wait</div>
+                        </div>
                     </div>
                 );
             }
@@ -3424,11 +3540,12 @@
                         </button>
                     )}
 
-                    {/* Overlay - Only on mobile */}
+                    {/* Overlay - Only on mobile, lower z-index than sidebar */}
                     {mobileMenuOpen && (
                         <div 
-                            className="lg:hidden fixed inset-0 bg-black/50 z-30"
+                            className="lg:hidden fixed inset-0 bg-black/50 z-35"
                             onClick={() => setMobileMenuOpen(false)}
+                            style={{ zIndex: 35 }}
                         ></div>
                     )}
 
@@ -3478,8 +3595,12 @@
                                 <button
                                     key={item.id}
                                     onClick={() => {
+                                        console.log('📄 Navigating to:', item.id);
                                         setCurrentPage(item.id);
-                                        setMobileMenuOpen(false);
+                                        // Close menu only on mobile (screen < 1024px)
+                                        if (window.innerWidth < 1024) {
+                                            setMobileMenuOpen(false);
+                                        }
                                     }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                                         currentPage === item.id
@@ -3511,13 +3632,27 @@
                     </div>
 
                     {/* Main Content - Adjusts based on sidebar state */}
-                    <div className={`min-h-screen w-full transition-all duration-300 ${
+                    <div className={`mobile-main-content min-h-screen w-full transition-all duration-300 overflow-y-auto ${
                         mobileMenuOpen ? 'lg:ml-72' : 'ml-0'
-                    }`}>
+                    }`} style={{ position: 'relative', zIndex: 1 }}>
                         <div className="p-3 pt-20 md:p-4 md:pt-20 lg:p-6 lg:pt-6 xl:p-8 xl:pt-8">
+                            {/* Firebase Error Display */}
+                            {loadError && (
+                                <div className="mb-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+                                    <div className="font-bold mb-1">⚠️ Data Loading Error</div>
+                                    <div className="text-sm">{loadError}</div>
+                                    <button 
+                                        onClick={() => window.location.reload()} 
+                                        className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white text-sm"
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            )}
+                            
                             {/* Debug indicator for mobile */}
-                            <div className="lg:hidden fixed top-16 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded z-50">
-                                {currentPage}
+                            <div className="lg:hidden fixed top-16 right-4 bg-emerald-500 text-white text-xs px-2 py-1 rounded z-50 shadow-lg">
+                                Page: {currentPage}
                             </div>
                         
                             {currentPage === 'dashboard' && (
