@@ -234,11 +234,6 @@
     </style>
 </head>
 <body>
-    <!-- Emergency test element -->
-    <div id="emergency-test" style="position: fixed; top: 0; right: 0; background: yellow; color: black; padding: 5px; z-index: 999999; font-size: 12px; pointer-events: none;">
-        HTML Loaded ✓
-    </div>
-    
     <div id="root"></div>
 
     <script type="text/babel">
@@ -3543,77 +3538,16 @@
                 setCurrentPage('dashboard');
             };
 
-            // Always visible test div for debugging - CANNOT BE HIDDEN
-            const testDiv = (
-                <>
-                    <div style={{
-                        position: 'fixed',
-                        top: '40px',
-                        left: 0,
-                        right: 0,
-                        background: 'red',
-                        color: 'white',
-                        padding: '10px',
-                        zIndex: 999999,
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        pointerEvents: 'none',
-                        display: 'block',
-                        visibility: 'visible',
-                        opacity: 1
-                    }}>
-                        Loading: {loading.toString()} | User: {user ? 'Yes' : 'No'} | Page: {currentPage} | Menu: {mobileMenuOpen.toString()}
-                    </div>
-                    <div style={{
-                        position: 'fixed',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'yellow',
-                        color: 'black',
-                        padding: '20px',
-                        zIndex: 999999,
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        display: 'block',
-                        visibility: 'visible',
-                        opacity: 1
-                    }}>
-                        {loading ? '⏳ LOADING' : (!user ? '🔓 NOT LOGGED IN' : '✅ LOGGED IN - APP SHOULD SHOW')}
-                    </div>
-                </>
-            );
+            // Debug removed - app is working!
 
             if (loading) {
                 console.log('🔄 Showing loading screen');
                 return (
-                    <div style={{ 
-                        minHeight: '100vh',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#1a1a1a',
-                        position: 'relative',
-                        zIndex: 1
-                    }}>
-                        {testDiv}
-                        <div style={{
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            background: 'purple',
-                            color: 'white',
-                            padding: '40px',
-                            fontSize: '24px',
-                            fontWeight: 'bold',
-                            zIndex: 99999,
-                            borderRadius: '20px',
-                            textAlign: 'center'
-                        }}>
-                            ⏳ LOADING STATE<br/>
-                            <span style={{ fontSize: '16px' }}>Waiting for Firebase...</span>
+                    <div className="min-h-screen flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-4"></div>
+                            <div className="text-2xl text-emerald-400 font-semibold">Loading Finance Tracker...</div>
+                            <div className="text-sm text-gray-400 mt-2">Please wait</div>
                         </div>
                     </div>
                 );
@@ -3621,29 +3555,7 @@
 
             if (!user) {
                 console.log('🔓 Showing login screen');
-                return (
-                    <div style={{ minHeight: '100vh', position: 'relative' }}>
-                        {testDiv}
-                        <div style={{
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            background: 'blue',
-                            color: 'white',
-                            padding: '40px',
-                            fontSize: '24px',
-                            fontWeight: 'bold',
-                            zIndex: 99999,
-                            borderRadius: '20px',
-                            textAlign: 'center'
-                        }}>
-                            🔓 LOGIN SCREEN<br/>
-                            <span style={{ fontSize: '16px' }}>No user logged in</span>
-                        </div>
-                        <Login onLogin={() => setLoading(false)} />
-                    </div>
-                );
+                return <Login onLogin={() => setLoading(false)} />;
             }
             
             console.log('✅ Showing main app');
@@ -3689,89 +3601,17 @@
             ];
 
             return (
-                <div style={{ 
-                    position: 'relative',
-                    minHeight: '100vh',
-                    width: '100vw',
-                    display: 'block',
-                    visibility: 'visible',
-                    opacity: 1,
-                    background: 'transparent'
-                }}>
-                    {/* Debug banner */}
-                    {testDiv}
-                    
-                    {/* MASSIVE CENTER BOX - Cannot be missed */}
-                    <div style={{
-                        position: 'fixed',
-                        top: '150px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: '90%',
-                        maxWidth: '400px',
-                        background: 'white',
-                        color: 'black',
-                        padding: '30px',
-                        zIndex: 999998,
-                        fontSize: '20px',
-                        borderRadius: '15px',
-                        border: '5px solid red',
-                        boxShadow: '0 0 50px rgba(255,0,0,0.5)',
-                        display: 'block',
-                        visibility: 'visible',
-                        opacity: 1
-                    }}>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '15px', color: 'red' }}>
-                            🎯 MAIN APP RENDERING
-                        </div>
-                        <div><strong>Page:</strong> {currentPage}</div>
-                        <div><strong>Menu:</strong> {mobileMenuOpen ? 'Open' : 'Closed'}</div>
-                        <div><strong>Screen:</strong> {window.innerWidth}x{window.innerHeight}</div>
-                        <div><strong>Data:</strong> {debts.length} debts, {income.length} income</div>
-                        <button 
-                            onClick={() => {
-                                console.log('Test button clicked!');
-                                const msg = `Screen: ${window.innerWidth}x${window.innerHeight}\nPage: ${currentPage}\nMenu: ${mobileMenuOpen}`;
-                                alert(msg);
-                            }}
-                            style={{
-                                marginTop: '15px',
-                                padding: '15px 30px',
-                                background: 'blue',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '18px',
-                                fontWeight: 'bold',
-                                width: '100%'
-                            }}
-                        >
-                            CLICK TO TEST
-                        </button>
-                    </div>
-                    
+                <div className="min-h-screen">
                     {/* Hamburger Button - Only visible when sidebar is closed */}
                     {!mobileMenuOpen && (
                         <button
-                            onClick={() => {
-                                console.log('Hamburger clicked!');
-                                setMobileMenuOpen(true);
-                            }}
-                            style={{
-                                position: 'fixed',
-                                top: '300px',
-                                left: '10px',
-                                zIndex: 99997,
-                                padding: '15px',
-                                background: 'orange',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '18px',
-                                fontWeight: 'bold'
-                            }}
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="fixed top-4 left-4 z-50 p-3 bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl shadow-lg hover:from-emerald-700 hover:to-green-700 transition-all"
+                            title="Open menu"
                         >
-                            OPEN MENU
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
                         </button>
                     )}
 
@@ -3884,11 +3724,6 @@
                                     </button>
                                 </div>
                             )}
-                            
-                            {/* Debug indicator for mobile */}
-                            <div className="lg:hidden fixed top-16 right-4 bg-emerald-500 text-white text-xs px-2 py-1 rounded z-50 shadow-lg">
-                                Page: {currentPage}
-                            </div>
                         
                             {currentPage === 'dashboard' && (
                                 <Dashboard
@@ -4059,27 +3894,9 @@
             console.log('✅ React root created');
             root.render(<App />);
             console.log('✅ App rendered');
-            
-            // Update emergency test element
-            setTimeout(() => {
-                const emergencyTest = document.getElementById('emergency-test');
-                if (emergencyTest) {
-                    emergencyTest.textContent = 'HTML ✓ React ✓';
-                    emergencyTest.style.background = 'lime';
-                }
-            }, 100);
         } catch (error) {
             console.error('❌ Render error:', error);
-            const emergencyTest = document.getElementById('emergency-test');
-            if (emergencyTest) {
-                emergencyTest.textContent = 'ERROR: ' + error.message;
-                emergencyTest.style.background = 'red';
-                emergencyTest.style.color = 'white';
-                emergencyTest.style.fontSize = '16px';
-                emergencyTest.style.padding = '20px';
-                emergencyTest.style.maxWidth = '90vw';
-                emergencyTest.style.wordBreak = 'break-word';
-            }
+            document.body.innerHTML = '<div style="color: white; padding: 20px; font-size: 20px; background: darkred;">Render Error: ' + error.message + '</div>';
         }
     </script>
 </body>
