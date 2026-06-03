@@ -217,7 +217,7 @@
             margin-bottom: 15px;
         }
         .right-location{
-            justify-self: end;
+            justify-self: end; /* Keeps it right-aligned on desktop */
         }
         .registry-btn:hover {
             background-color: #d81b60;
@@ -242,6 +242,10 @@
             .registry-btn {
                 padding: 15px 30px;
                 font-size: 1.2em;
+            }
+            /* Resetting alignments for Mobile Devices */
+            .right-location {
+                justify-self: start; /* Pulls the time back to the left on phones */
             }
             .center-location {
                 justify-content: flex-start; /* Reset to left-aligned on mobile so it matches the other items */
