@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby shower!</title>
+    <style>
+        /* Base Background and Ocean Gradient */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 40%, #80deea 100%);
+            color: #333;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* --- ANIMATIONS: Bubbles --- */
+        .bubbles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: rise infinite ease-in;
+        }
+        /* Variations in bubble sizes and speeds */
+        .bubble:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 8s; }
+        .bubble:nth-child(2) { width: 20px; height: 20px; left: 20%; animation-duration: 5s; animation-delay: 1s; }
+        .bubble:nth-child(3) { width: 50px; height: 50px; left: 35%; animation-duration: 10s; animation-delay: 2s; }
+        .bubble:nth-child(4) { width: 30px; height: 30px; left: 50%; animation-duration: 7s; }
+        .bubble:nth-child(5) { width: 25px; height: 25px; left: 65%; animation-duration: 6s; animation-delay: 3s; }
+        .bubble:nth-child(6) { width: 45px; height: 45px; left: 80%; animation-duration: 9s; animation-delay: 1s; }
+        .bubble:nth-child(7) { width: 15px; height: 15px; left: 90%; animation-duration: 4s; animation-delay: 2s; }
+
+        @keyframes rise {
+            0% { bottom: -20px; transform: translateX(0); }
+            50% { transform: translateX(20px); }
+            100% { bottom: 110vh; transform: translateX(-20px); }
+        }
+
+        /* --- ANIMATIONS: Swimming Fish --- */
+        .fish {
+            position: absolute;
+            font-size: 2rem;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .fish-1 {
+            top: 15%;
+            left: -10%;
+            animation: swim-right 15s linear infinite;
+        }
+        .fish-2 {
+            top: 75%;
+            right: -10%;
+            transform: scaleX(-1); /* Flips fish to face left */
+            animation: swim-left 20s linear infinite;
+            animation-delay: 5s;
+        }
+        .fish-3 {
+            top: 45%;
+            left: -10%;
+            font-size: 1.5rem;
+            animation: swim-right 25s linear infinite;
+            animation-delay: 12s;
+        }
+
+        @keyframes swim-right {
+            0% { left: -10%; transform: scaleX(1) translateY(0); }
+            50% { transform: scaleX(1) translateY(-20px); }
+            100% { left: 110%; transform: scaleX(1) translateY(0); }
+        }
+        @keyframes swim-left {
+            0% { right: -10%; transform: scaleX(-1) translateY(0); }
+            50% { transform: scaleX(-1) translateY(20px); }
+            100% { right: 110%; transform: scaleX(-1) translateY(0); }
+        }
+
+        /* --- MAIN CONTENT CONTAINER --- */
+        .page-container {
+            width: 90%;
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.92); /* Semi-transparent white */
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 151, 167, 0.2);
+            padding: 40px 30px;
+            margin: 40px 0;
+            z-index: 10; /* Keeps content above animations */
+            text-align: center;
+            border: 2px solid #ffffff;
+            box-sizing: border-box;
+        }
+
+        /* Typography */
+        h1 {
+            color: #ec407a;
+            font-size: 2.7em; /* Increased size */
+            margin: 0 0 5px 0;
+            font-weight: 800;
+        }
+        h2 {
+            color: #00838f;
+            font-size: 1.4em; /* Increased size */
+            font-weight: 600;
+            margin: 0 0 25px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .intro-text {
+            color: #555;
+            font-size: 1.2em; /* Increased size */
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Decorative Elements */
+        .decor {
+            font-size: 2.2em;
+            letter-spacing: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Event Details (Responsive Grid) */
+        .details-section {
+            display: grid;
+            /* Auto-fit makes it 1 column on phones, 2 on PCs */
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            background: #f4fbfb;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #b2ebf2;
+            margin-bottom: 35px;
+            text-align: left;
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Forces the location item to span full width and center its contents */
+        .center-location {
+            grid-column: 1 / -1; 
+            justify-content: center; 
+        }
+        
+        .detail-icon {
+            background: #e0f7fa;
+            color: #00acc1;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4em;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .detail-text strong {
+            display: block;
+            color: #333;
+            font-size: 1.2em; /* Increased size */
+            margin-bottom: 4px;
+        }
+        .detail-text span {
+            color: #666;
+            font-size: 1.1em; /* Increased size */
+            display: block;
+        }
+        
+        /* Style for the map link */
+        .map-link {
+            color: #00838f;
+            text-decoration: none;
+            border-bottom: 1px dotted #00838f;
+            transition: color 0.2s;
+        }
+        .map-link:hover {
+            color: #ec407a;
+            border-bottom-color: #ec407a;
+        }
+
+        /* Registry Button */
+        .registry-btn {
+            display: inline-block;
+            background-color: #ec407a;
+            color: #ffffff;
+            padding: 18px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.3em; /* Increased size */
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3);
+            transition: transform 0.2s, background 0.3s;
+            margin-bottom: 15px;
+        }
+        .right-location{
+            justify-self: end;
+        }
+        .registry-btn:hover {
+            background-color: #d81b60;
+            transform: translateY(-3px);
+        }
+
+        .registry-link-text {
+            font-size: 0.95em; /* Increased size */
+            color: #777;
+            display: block;
+            word-wrap: break-word;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .page-container {
+                padding: 30px 20px;
+            }
+            h1 { font-size: 2.2em; }
+            h2 { font-size: 1.1em; }
+            .intro-text { font-size: 1.1em; }
+            .registry-btn {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+            .center-location {
+                justify-content: flex-start; /* Reset to left-aligned on mobile so it matches the other items */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bubbles-container">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+    
+    <div class="fish fish-1">🐟</div>
+    <div class="fish fish-2">🐠</div>
+    <div class="fish fish-3">🐡</div>
+
+    <div class="page-container">
+        
+        <div class="decor">🎀 🐚 🎀</div>
+        
+        <h1>A Little Mermaid is on the Way!</h1>
+        <h2>Alejandra & Brandon's Baby Shower</h2>
+        
+        <p class="intro-text">
+            We are overjoyed to welcome our baby girl into the world! Please join us for an afternoon of celebration, food, and wonderful company.
+        </p>
+
+        <div class="details-section">
+            <div class="detail-item">
+                <div class="detail-icon">🗓</div>
+                <div class="detail-text">
+                    <strong>Date</strong>
+                    <span>July 18, 2026</span>
+                </div>
+            </div>
+            
+            <div class="detail-item right-location">
+                <div class="detail-icon">⏰</div> 
+                <div class="detail-text">
+                    <strong>Time</strong>
+                    <span>2:00 PM - 6:00 PM</span>
+                </div>
+            </div>
+
+            <div class="detail-item center-location">
+                <div class="detail-icon">📍</div>
+                <div class="detail-text">
+                    <strong>Location</strong>
+                    <span>
+                        <a href="https://maps.google.com/?cid=14903754222734234537&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ" target="_blank" class="map-link">
+                            2241 Boone Rd SE<br>Salem, OR 97306
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <a href="https://my.babylist.com/brandon-rodriguez-hernandez" class="registry-btn" target="_blank">View Our Baby Registry</a>
+        
+        <div class="decor" style="margin-top: 30px; margin-bottom: 0;">🐢 🐬 🐙</div>
+        
+    </div>
+
+</body>
+</html>
