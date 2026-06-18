@@ -3,349 +3,473 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby shower!</title>
+    <title>Baby Shower: Alejandra & Brandon</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+
     <style>
-        /* Base Background and Ocean Gradient */
-        body, html {
+        /* --- 1. DESIGN TOKENS & VARIABLES --- */
+        :root {
+            /* Color Palette */
+            --ocean-deep: #006064;
+            --ocean-mid: #00acc1;
+            --ocean-light: #e0f7fa;
+            --coral-primary: #ff4081;
+            --coral-hover: #f50057;
+            --text-dark: #1a2b2c;
+            --text-muted: #546e7a;
+            
+            /* Fluid Spacing */
+            --space-sm: clamp(0.5rem, 1vw, 1rem);
+            --space-md: clamp(1rem, 2vw, 2rem);
+            --space-lg: clamp(1.5rem, 4vw, 3rem);
+            
+            /* Animation Timing */
+            --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --smooth-easing: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- 2. RESET & BASE --- */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            width: 100%;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 40%, #80deea 100%);
-            color: #333;
-            overflow-x: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
         }
 
-        /* --- ANIMATIONS: Bubbles --- */
-        .bubbles-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
+        body {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            overflow-x: hidden;
+            /* Breathing Gradient Background */
+            background: linear-gradient(-45deg, #e0f7fa, #b2ebf2, #80deea, #4dd0e1);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            line-height: 1.6;
         }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 3. AMBIENT ANIMATIONS (Hardware Accelerated) --- */
+        .sea-environment {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
         .bubble {
             position: absolute;
-            bottom: -20px;
-            background: rgba(255, 255, 255, 0.4);
+            bottom: -5vh;
             border-radius: 50%;
-            animation: rise infinite ease-in;
+            /* Realistic bubble sheen */
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.5), inset 10px 0 20px rgba(255,255,255,0.3), 0 0 10px rgba(255,255,255,0.2);
+            backdrop-filter: blur(2px);
+            animation: rise infinite linear;
+            will-change: transform, opacity;
         }
-        /* Variations in bubble sizes and speeds */
-        .bubble:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 8s; }
-        .bubble:nth-child(2) { width: 20px; height: 20px; left: 20%; animation-duration: 5s; animation-delay: 1s; }
-        .bubble:nth-child(3) { width: 50px; height: 50px; left: 35%; animation-duration: 10s; animation-delay: 2s; }
-        .bubble:nth-child(4) { width: 30px; height: 30px; left: 50%; animation-duration: 7s; }
-        .bubble:nth-child(5) { width: 25px; height: 25px; left: 65%; animation-duration: 6s; animation-delay: 3s; }
-        .bubble:nth-child(6) { width: 45px; height: 45px; left: 80%; animation-duration: 9s; animation-delay: 1s; }
-        .bubble:nth-child(7) { width: 15px; height: 15px; left: 90%; animation-duration: 4s; animation-delay: 2s; }
 
         @keyframes rise {
-            0% { bottom: -20px; transform: translateX(0); }
-            50% { transform: translateX(20px); }
-            100% { bottom: 110vh; transform: translateX(-20px); }
+            0% { transform: translateY(0) scale(1) translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            50% { transform: translateY(-50vh) scale(1.2) translateX(20px); }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) scale(1) translateX(-20px); opacity: 0; }
         }
 
-        /* --- ANIMATIONS: Swimming Fish --- */
+        /* Dynamic Fish Generation */
         .fish {
             position: absolute;
-            font-size: 2rem;
-            z-index: 0;
-            pointer-events: none;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
             opacity: 0.6;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));
+            will-change: transform;
         }
-        .fish-1 {
-            top: 15%;
-            left: -10%;
-            animation: swim-right 15s linear infinite;
-        }
-        .fish-2 {
-            top: 75%;
-            right: -10%;
-            animation: swim-left 20s linear infinite;
-            animation-delay: 5s;
-        }
-        .fish-3 {
-            top: 45%;
-            left: -10%;
-            font-size: 1.5rem;
-            animation: swim-right 25s linear infinite;
-            animation-delay: 12s;
-        }
+        
+        .fish-1 { top: 20%; left: -10%; animation: swim-right 20s var(--smooth-easing) infinite; }
+        .fish-2 { top: 60%; right: -10%; animation: swim-left 25s var(--smooth-easing) infinite 3s; font-size: clamp(2rem, 4vw, 3rem); }
+        .fish-3 { top: 85%; left: -10%; animation: swim-right 18s var(--smooth-easing) infinite 8s; font-size: clamp(1.2rem, 2vw, 1.8rem); }
 
-        /* Swapped scaleX values to match your device's default emoji orientation */
+        .dir-right { display: inline-block; transform: scaleX(-1); }
+        .dir-left { display: inline-block; transform: scaleX(1); }
+
         @keyframes swim-right {
-            0% { left: -10%; transform: scaleX(-1) translateY(0); }
-            50% { transform: scaleX(-1) translateY(-20px); }
-            100% { left: 110%; transform: scaleX(-1) translateY(0); }
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(60vw, -30px, 0); }
+            100% { transform: translate3d(120vw, 0, 0); }
         }
         @keyframes swim-left {
-            0% { right: -10%; transform: scaleX(1) translateY(0); }
-            50% { transform: scaleX(1) translateY(20px); }
-            100% { right: 110%; transform: scaleX(1) translateY(0); }
+            0% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(-60vw, 30px, 0); }
+            100% { transform: translate3d(-120vw, 0, 0); }
         }
 
-        /* --- MAIN CONTENT CONTAINER --- */
-        .page-container {
-            width: 90%;
-            max-width: 700px;
-            background: rgba(255, 255, 255, 0.92); /* Semi-transparent white */
-            backdrop-filter: blur(5px);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 151, 167, 0.2);
-            padding: 40px 30px;
-            margin: 40px 0;
-            z-index: 10; /* Keeps content above animations */
+        /* --- 4. MAIN INTERFACE --- */
+        .invitation-card {
+            position: relative;
+            z-index: 10;
+            width: min(90%, 750px);
+            margin: var(--space-lg) 0;
+            padding: var(--space-lg);
+            
+            /* Premium Glassmorphism */
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 30px;
+            
+            /* Layered Shadows for Depth */
+            box-shadow: 
+                0 20px 40px rgba(0, 96, 100, 0.08),
+                0 1px 3px rgba(255, 255, 255, 0.5) inset;
+                
             text-align: center;
-            border: 2px solid #ffffff;
-            box-sizing: border-box;
         }
 
-        /* Typography */
-        h1 {
-            color: #ec407a;
-            font-size: 2.7em; /* Increased size */
-            margin: 0 0 5px 0;
-            font-weight: 800;
+        /* --- 5. TYPOGRAPHY --- */
+        .card-header {
+            margin-bottom: var(--space-md);
         }
+
+        .decor-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            animation: gentle-bob 4s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--ocean-deep);
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+
         h2 {
-            color: #00838f;
-            font-size: 1.4em; /* Increased size */
+            font-family: 'Outfit', sans-serif;
+            color: var(--coral-primary);
+            font-size: clamp(1rem, 2vw, 1.4rem);
             font-weight: 600;
-            margin: 0 0 25px 0;
-            letter-spacing: 1px;
+            letter-spacing: 3px;
             text-transform: uppercase;
         }
-        
-        .intro-text {
-            color: #555;
-            font-size: 1.2em; /* Increased size */
-            line-height: 1.6;
-            margin-bottom: 30px;
+
+        .intro {
+            font-size: clamp(1rem, 1.5vw, 1.15rem);
+            color: var(--text-muted);
+            max-width: 550px;
+            margin: 0 auto var(--space-md);
         }
 
-        /* Decorative Elements */
-        .decor {
-            font-size: 2.2em;
-            letter-spacing: 15px;
-            margin-bottom: 20px;
-        }
-
-        /* Event Details (Responsive Grid) */
-        .details-section {
-            display: grid;
-            /* Auto-fit makes it 1 column on phones, 2 on PCs */
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            background: #f4fbfb;
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #b2ebf2;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-        
-        .detail-item {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Forces the location item to span full width and center its contents */
-        .center-location {
-            grid-column: 1 / -1; 
-            justify-content: center; 
-        }
-        
-        .detail-icon {
-            background: #e0f7fa;
-            color: #00acc1;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        /* --- 6. DATA VISUALIZATION (Countdown & Grid) --- */
+        .countdown-wrapper {
             display: flex;
             justify-content: center;
+            gap: clamp(0.5rem, 2vw, 1.5rem);
+            margin-bottom: var(--space-md);
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.9);
+            padding: clamp(0.5rem, 1.5vw, 1rem);
+            border-radius: 12px;
+            min-width: clamp(60px, 8vw, 80px);
+            box-shadow: 0 4px 15px rgba(0, 96, 100, 0.05);
+            border: 1px solid rgba(255, 255, 255, 1);
+        }
+
+        .time-value {
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            font-weight: 800;
+            color: var(--ocean-deep);
+            line-height: 1;
+        }
+
+        .time-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--coral-primary);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            padding: var(--space-md);
+            border-radius: 20px;
+            margin-bottom: var(--space-md);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            font-size: 1.4em;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        
-        .detail-text strong {
-            display: block;
-            color: #333;
-            font-size: 1.2em; /* Increased size */
-            margin-bottom: 4px;
-        }
-        .detail-text span {
-            color: #666;
-            font-size: 1.1em; /* Increased size */
-            display: block;
-        }
-        
-        /* Style for the map link */
-        .map-link {
-            color: #00838f;
-            text-decoration: none;
-            border-bottom: 1px dotted #00838f;
-            transition: color 0.2s;
-        }
-        .map-link:hover {
-            color: #ec407a;
-            border-bottom-color: #ec407a;
-        }
-
-        /* Raffle Section */
-        .raffle-section {
-            background: #fff0f5; /* Light pink background */
-            padding: 20px 25px;
-            border-radius: 15px;
-            border: 2px dashed #f8bbd0;
-            margin-bottom: 35px;
             text-align: center;
+            gap: 0.5rem;
         }
 
-        .raffle-title {
-            color: #ec407a;
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-bottom: 10px;
+        .icon-wrapper {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1.5rem;
+            color: var(--ocean-mid);
+            box-shadow: 0 8px 20px rgba(0, 172, 193, 0.15);
+            transition: transform 0.3s var(--spring-easing);
         }
 
-        .raffle-text {
-            color: #555;
-            font-size: 1.1em;
-            line-height: 1.5;
-            margin: 0;
+        .detail-item:hover .icon-wrapper {
+            transform: scale(1.1) translateY(-3px);
         }
 
-        /* Registry Button */
-        .registry-btn {
-            display: inline-block;
-            background-color: #ec407a;
-            color: #ffffff;
-            padding: 18px 40px;
+        .detail-item h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .detail-item p, .detail-item a {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
             text-decoration: none;
+        }
+
+        .map-link {
+            position: relative;
+            color: var(--ocean-deep);
+        }
+
+        .map-link::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            transform: scaleX(0);
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: var(--coral-primary);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+        }
+
+        .map-link:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* --- 7. CALL TO ACTIONS --- */
+        .raffle-box {
+            background: linear-gradient(135deg, rgba(255, 64, 129, 0.05), rgba(255, 64, 129, 0.1));
+            border: 1px solid rgba(255, 64, 129, 0.2);
+            padding: var(--space-md);
+            border-radius: 20px;
+            margin-bottom: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .raffle-box h3 {
+            color: var(--coral-primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-registry {
+            display: inline-block;
+            background: var(--coral-primary);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(1.1rem, 2vw, 1.2rem);
+            font-weight: 600;
+            padding: 1rem 2.5rem;
             border-radius: 50px;
-            font-size: 1.3em; /* Increased size */
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3);
-            transition: transform 0.2s, background 0.3s;
-            margin-bottom: 15px;
-        }
-        .right-location{
-            justify-self: end; /* Keeps it right-aligned on desktop */
-        }
-        .registry-btn:hover {
-            background-color: #d81b60;
-            transform: translateY(-3px);
+            text-decoration: none;
+            transition: all 0.3s var(--spring-easing);
+            box-shadow: 0 10px 25px rgba(255, 64, 129, 0.3);
+            border: 2px solid transparent;
         }
 
-        .registry-link-text {
-            font-size: 0.95em; /* Increased size */
-            color: #777;
-            display: block;
-            word-wrap: break-word;
+        .btn-registry:hover, .btn-registry:focus-visible {
+            background: var(--coral-hover);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(255, 64, 129, 0.4);
+            outline: none;
         }
 
-        /* Mobile Adjustments */
-        @media (max-width: 480px) {
-            .page-container {
-                padding: 30px 20px;
+        /* --- 8. ACCESSIBILITY --- */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
             }
-            h1 { font-size: 2.2em; }
-            h2 { font-size: 1.1em; }
-            .intro-text { font-size: 1.1em; }
-            .registry-btn {
-                padding: 15px 30px;
-                font-size: 1.2em;
-            }
-            /* Resetting alignments for Mobile Devices */
-            .right-location {
-                justify-self: start; /* Pulls the time back to the left on phones */
-            }
-            .center-location {
-                justify-content: flex-start; /* Reset to left-aligned on mobile so it matches the other items */
-            }
+            body { background: var(--ocean-light); }
         }
     </style>
 </head>
 <body>
 
-    <div class="bubbles-container">
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
-        <div class="bubble"></div>
+    <div class="sea-environment" aria-hidden="true">
+        <div class="bubble" style="width: 30px; height: 30px; left: 15%; animation-duration: 7s;"></div>
+        <div class="bubble" style="width: 15px; height: 15px; left: 35%; animation-duration: 5s; animation-delay: 2s;"></div>
+        <div class="bubble" style="width: 40px; height: 40px; left: 65%; animation-duration: 9s; animation-delay: 1s;"></div>
+        <div class="bubble" style="width: 20px; height: 20px; left: 85%; animation-duration: 6s; animation-delay: 3s;"></div>
+        
+        <div class="fish fish-1"><span class="dir-right">🐟</span></div>
+        <div class="fish fish-2"><span class="dir-left">🐠</span></div>
+        <div class="fish fish-3"><span class="dir-right">🐡</span></div>
     </div>
-    
-    <div class="fish fish-1">🐟</div>
-    <div class="fish fish-2">🐠</div>
-    <div class="fish fish-3">🐡</div>
 
-    <div class="page-container">
+    <main class="invitation-card">
         
-        <div class="decor">🎀 🐚 🎀</div>
-        
-        <h1>A Little Mermaid is on the Way!</h1>
-        <h2>Alejandra & Brandon's Baby Shower</h2>
-        
-        <p class="intro-text">
+        <header class="card-header">
+            <span class="decor-icon" aria-hidden="true">🐚</span>
+            <h1>A Little Mermaid is on the Way!</h1>
+            <h2>Alejandra & Brandon's Baby Shower</h2>
+        </header>
+
+        <p class="intro">
             We are overjoyed to welcome our baby girl into the world! Please join us for an afternoon of celebration, food, and wonderful company.
         </p>
 
-        <div class="details-section">
-            <div class="detail-item">
-                <div class="detail-icon">🗓</div>
-                <div class="detail-text">
-                    <strong>Date</strong>
-                    <span>July 18, 2026</span>
-                </div>
+        <section class="countdown-wrapper" aria-label="Countdown to baby shower">
+            <div class="time-unit">
+                <span class="time-value" id="cd-days">00</span>
+                <span class="time-label">Days</span>
             </div>
-            
-            <div class="detail-item right-location">
-                <div class="detail-icon">⏰</div> 
-                <div class="detail-text">
-                    <strong>Time</strong>
-                    <span>3:00 PM - 6:00 PM</span>
-                </div>
+            <div class="time-unit">
+                <span class="time-value" id="cd-hours">00</span>
+                <span class="time-label">Hours</span>
             </div>
+            <div class="time-unit">
+                <span class="time-value" id="cd-mins">00</span>
+                <span class="time-label">Mins</span>
+            </div>
+            <div class="time-unit">
+                <span class="time-value" id="cd-secs">00</span>
+                <span class="time-label">Secs</span>
+            </div>
+        </section>
 
-            <div class="detail-item center-location">
-                <div class="detail-icon">📍</div>
-                <div class="detail-text">
-                    <strong>Location</strong>
-                    <span>
-                        <a href="https://maps.google.com/?cid=14903754222734234537&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ" target="_blank" class="map-link">
-                            2241 Boone Rd SE<br>Salem, OR 97306
-                        </a>
-                    </span>
-                </div>
-            </div>
-        </div>
+        <section class="details-grid" aria-label="Event Details">
+            <article class="detail-item">
+                <div class="icon-wrapper" aria-hidden="true">📅</div>
+                <h3>When</h3>
+                <p>July 18, 2026<br><span style="font-size: 0.9em; font-weight: 400; color: var(--text-muted);">3:00 PM - 6:00 PM</span></p>
+            </article>
 
-        <div class="raffle-section">
-            <div class="raffle-title">🎁 Raffle! 🎁</div>
-            <p class="raffle-text">
-                Bring <strong>diapers</strong>, <strong>baby wipes</strong>, or a <strong>book with a note</strong> to enter our raffle! One entry per item brought. There will be one <strong>GRAND prize</strong> and several smaller prizes up for grabs!
+            <article class="detail-item">
+                <div class="icon-wrapper" aria-hidden="true">📍</div>
+                <h3>Where</h3>
+                <a href="https://maps.google.com/?cid=14903754222734234537&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ" target="_blank" rel="noopener noreferrer" class="map-link">
+                    2241 Boone Rd SE<br>Salem, OR 97306
+                    <span class="sr-only">(Opens Google Maps in a new tab)</span>
+                </a>
+            </article>
+        </section>
+
+        <section class="raffle-box">
+            <h3><span aria-hidden="true">🎁</span> Diaper Raffle <span aria-hidden="true">🎁</span></h3>
+            <p>
+                Bring <strong>diapers</strong>, <strong>baby wipes</strong>, or a <strong>book with a note</strong> to enter our raffle! One entry per item brought. There will be one <strong>GRAND prize</strong> and several smaller prizes!
             </p>
-        </div>
+        </section>
 
-        <a href="https://my.babylist.com/brandon-rodriguez-hernandez" class="registry-btn" target="_blank">View Our Baby Registry</a>
-        
-        <div class="decor" style="margin-top: 30px; margin-bottom: 0;">🐢 🐬 🐙</div>
-        
-    </div>
+        <a href="https://my.babylist.com/brandon-rodriguez-hernandez" class="btn-registry" target="_blank" rel="noopener noreferrer">
+            View Our Baby Registry
+            <span class="sr-only">(Opens Babylist registry in a new tab)</span>
+        </a>
 
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Target Date: July 18, 2026 at 3:00 PM (15:00:00)
+            const targetDate = new Date("July 18, 2026 15:00:00").getTime();
+            
+            // DOM Elements cached for performance
+            const els = {
+                days: document.getElementById("cd-days"),
+                hours: document.getElementById("cd-hours"),
+                mins: document.getElementById("cd-mins"),
+                secs: document.getElementById("cd-secs")
+            };
+
+            const updateCountdown = () => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    els.days.innerText = "00";
+                    els.hours.innerText = "00";
+                    els.mins.innerText = "00";
+                    els.secs.innerText = "00";
+                    return;
+                }
+
+                // Time calculations
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                // Update DOM with zero-padding
+                els.days.innerText = String(days).padStart(2, '0');
+                els.hours.innerText = String(hours).padStart(2, '0');
+                els.mins.innerText = String(minutes).padStart(2, '0');
+                els.secs.innerText = String(seconds).padStart(2, '0');
+            };
+
+            // Run once immediately, then interval
+            updateCountdown();
+            const interval = setInterval(updateCountdown, 1000);
+        });
+    </script>
 </body>
 </html>
